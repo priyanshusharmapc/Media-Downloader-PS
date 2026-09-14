@@ -1,165 +1,99 @@
-# Media Downloader
+# Media Downloader PS
 
-This project is a Qt/C++ based GUI frontend to CLI multiple CLI-based tools that deal with downloading online media.
+Media Downloader PS is a Qt/C++ fork of Media Downloader with a loss-resistant Archive Mode for preserving playlist history, canonical media, metadata, recovery evidence, and operational state over time.
 
-[yt-dlp](https://github.com/yt-dlp/yt-dlp) CLI tool is the default supported tool and other tools can be added by
-downloading their extension and a list of supported extensions is managed [here](https://github.com/mhogomchungu/media-downloader/wiki/Extensions).
+The upstream project remains a general-purpose graphical frontend for tools such as yt-dlp, gallery-dl, you-get, svtplay-dl, aria2c, wget, and related extensions. This fork adds a separate Archive Mode designed for long-lived collections where deleted, private, removed, unavailable, or later-recovered items must remain historically traceable.
 
+## Archive Mode status
 
-Features offered:-
+The current code-qualified Archive Mode candidate is commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05` from branch `archive-mode-v1`. GitHub Actions run `34881209447` completed successfully on Linux and Windows. The qualification included the normal regression suite, real-media integration tests, Linux ASan/UBSan execution, Windows portable packaging, packaged preflight, GUI launch smoke, and packaged yt-dlp + FFmpeg + FFprobe runtime smoke.
 
-1. The GUI can be used to download any media from any website supported by installed extensions.
+That hosted qualification does not replace target-host acceptance. The next gate is the sealed Windows local harness on the actual Windows/Kilo machine using real YouTube inputs.
 
-2. The GUI offers a configurable list of preset options that can be used to download media if they are provided in multiple formats.
+Documentation commits may be newer than the code-qualified candidate above. Always use the commit stored in the portable package's `build-identity.json` as the `-ExpectedCommit` value for that package.
 
-3. The GUI offers the ability to do an unlimited number of concurrent downloads. Be careful with this ability because doing too many concurrent
-downloads may cause the host to ban you.
+## Archive Mode documentation
 
-4. The GUI offers the ability to do batch downloads by entering individual links in the UI or telling the app to read them from a local file.
+Start here:
 
-5. The GUI offers an ability to download a playlist from websites that supports them like YouTube.
+- [Archive Mode documentation index](docs/README.md)
+- [Archive Mode architecture and invariants](docs/ARCHIVE_MODE.md)
+- [Operations and troubleshooting](docs/ARCHIVE_OPERATIONS.md)
+- [Recovery package workflow](docs/ARCHIVE_RECOVERY.md)
+- [Testing, qualification, and acceptance](docs/ARCHIVE_TESTING.md)
+- [Archive Agent interoperability contract](resources/archive/ARCHIVE_AGENT.md)
+- [Frozen pre-harness audit](docs/archive-pre-harness-audit-2026-09-14.md)
 
-6. The GUI offers the ability to manage links to playlists to easily monitor their activities(subscriptions).
+## Archive Mode quick start
 
-7. The GUI is offered in multiple languages and as of this writing, the supported languages are English, Chinese, Spanish, Polish, Turkish, Russian, Japanese, French, Italian, Portuguese, Arabic, Korean, Swedish, German, Greek and Ukrainian.
+For the qualified Windows portable candidate, extract the ZIP into a fresh directory and keep the Archive Root outside the portable package. Use an empty Archive Root for the first target-host qualification.
 
-## Extensions
-
-Media Downloader is a GUI front end to [yt-dlp](https://github.com/yt-dlp/yt-dlp), [gallery-dl](https://github.com/mikf/gallery-dl), [you-get](https://github.com/soimort/you-get), [svtplay-dl](https://github.com/spaam/svtplay-dl), [aria2c](https://aria2.github.io/), [wget](https://www.gnu.org/software/wget) and [get-sauce](https://github.com/gan-of-culture/get-sauce).
-
-To Install these extensins, go to "Configure" tab and then go to "Extensions" sub tab and then click the "Add An Extension" button and then select from the list an extension you want to install.
-
-## FAQ
-A Frequently asked Questions page is [here](https://github.com/mhogomchungu/media-downloader/wiki/Frequently-Asked-Questions).
-
-#### Prerequisite before running for the first time
-
-Make sure you have access to the internet before you run "Media Downloader" for the first time because it will attempt to use the internet to download the latest version of yt-dlp. Installing most extensions will also cause "Media Downloader" to access the internet to download the extension's executable.
-
-## Binary packages
-
-#### Bundle for MacOS
-
-Bundle for arm64 build of MacOS is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt6-arm64-5.6.6.dmg).
-
-Bundle for x86_64 build of MacOS is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt6-x86_64-5.6.6.dmg).
-
-These bundles are not notarized and your system may report it as "corrupted". Search the internet on how to install bundles that are not notarized if you want to use this app on MacOS. This bundle works on macOS 14.0 or later.
-
-#### Installer for Microsoft Windows
-
-Installer for Microsoft Windows that is 32 bit, build with Qt5 and has a minimum requirenment of windows 7 is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt5-5.6.6.setup.exe).
-
-Installer for Microsoft Windows that is 64 bit, build with Qt6 and has a minimum requirenment of windows 10 is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt6-5.6.6.setup.exe).
-
-#### Portable version for Microsoft Windows
-
-A portable version is a self-contained version that keeps everything in the application folder and does not need to be installed first.
-
-Portable version for Microsoft Windows that is 32 bit, build with Qt5 and has a minimum requirenment of windows 7 is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt5-5.6.6.zip).
-
-Portable version for Microsoft Windows that is 64 bit, build with Qt6 and has a minimum requirenment of windows 10 is [here](https://github.com/mhogomchungu/media-downloader/releases/download/5.6.6/MediaDownloaderQt6-5.6.6.zip).
-
-You can also install the portable version for Windows using scoop with the following commands:
-
-Add the extras bucket:
 ```powershell
-scoop bucket add extras
-```
-Install Media Downloader:
-```powershell
-scoop install media-downloader
-```
-
-Git versions for windows and macos can be downloaded from [here](https://github.com/mhogomchungu/media-downloader-git/releases).
-
-#### Problems with Windows's antivirus programs
-
-Once in a while, Windows Defender and other antivirus tools will report this application as a virus/unsafe
-or Potentially unwanted. These are false positive reports and they are tracked [here](https://github.com/mhogomchungu/media-downloader/issues/481).
-
-
-#### Flatpak
-
-Media Downloader is on [flathub](https://flathub.org/apps/io.github.mhogomchungu.media-downloader) for those who prefer to use flatpaks.
-
-### AppImage
-
-Users of AppImages can get an AppImage package of Media Downloader from [here](https://github.com/pkgforge-dev/Media-Downloader-AppImage/releases).
-
-#### Aur package for Arch Linux
-Arch Linux users can build the project from source using [this](https://aur.archlinux.org/packages/media-downloader) aur package.
-
-#### Package for Fedora
-Media Downloader is in official Fedora repositories and can be installed by running ```sudo dnf -y install media-downloader```
-
-### Binary packages for other Linux distributions
-
-Binary packages i maintain for a few Linux distributions are [here](https://software.opensuse.org//download.html?project=home%3Aobs_mhogomchungu&package=media-downloader).
-
-### Packaging Status
-
-A short list of distributions that have Media Downloader in their repositories and the version they have is maintained [here](https://repology.org/project/media-downloader/badges).
-
-
-# How to compile for Linux
-
-1. clone the repo and cd into it
-```console
-git clone https://github.com/mhogomchungu/media-downloader && cd media-downloader
+.\archive-local-harness.ps1 `
+  -ArchiveRoot 'C:\ArchiveHarness' `
+  -PlaylistUrl '<REAL PLAYLIST URL>' `
+  -VideoUrl '<REAL VIDEO URL>' `
+  -ExpectedCommit '33cf3150fb7ccc6aa26f0f2d9454db7701baad05'
 ```
 
-2. chmod it to make it a executeable
-```console
-chmod +x build_linux.sh
+The harness verifies package identity and sealed files before execution, runs Archive preflight, performs a complete playlist scan, syncs and verifies the exact requested item, repeats the operation, confirms canonical media hashes are unchanged, and writes a dated evidence receipt into the Archive Root.
+
+Do not use `-AllowExistingArchive` for the first acceptance run unless you intentionally want to test against existing state.
+
+## Archive Mode command-line interface
+
+The portable candidate includes `archive-cli.exe`.
+
+```text
+archive-cli preflight <archive-root>
+archive-cli validate <archive-root> <package-dir>
+archive-cli ingest-pending <archive-root>
+archive-cli scan <archive-root> <youtube-playlist-url> [display-name]
+archive-cli sync-item <archive-root> <youtube-video-url>
+archive-cli verify-item <archive-root> <youtube-video-url>
 ```
 
-3. now run the shell script
-```console
-./build_linux.sh
+`scan` returns exit code 0 only for a complete discovery snapshot. An incomplete discovery does not infer historical removal. Invalid YouTube identity input is rejected before archive mutation.
+
+## Archive design principles
+
+Archive Mode follows a few strict rules:
+
+1. Historical playlist membership is durable. Removed or unavailable items are not erased from history.
+2. Canonical archive state is authoritative. CSV, M3U8, and JSONL reports are generated projections, not mutation inputs.
+3. Canonical media is not overwritten casually. Normalization and recovery stage and verify output before promotion.
+4. Recovery is additive. External tools and agents submit Recovery Packages through `State/ArchiveMode/Imports/Pending/`; they do not edit canonical state directly.
+5. State mutation is serialized and journaled. Interrupted multi-file commits can roll forward safely, while conflicting preimages are preserved for diagnosis.
+6. Media marked complete is verified against real files and FFprobe, not trusted solely because state says `complete`.
+7. Portable acceptance is commit-bound and hash-bound. A stale, mixed, or tampered package must not produce a successful local-harness result.
+
+See [docs/ARCHIVE_MODE.md](docs/ARCHIVE_MODE.md) for the full model.
+
+## Building the Archive candidate
+
+A representative Qt6 development build is:
+
+```sh
+cmake -S . -B build -G Ninja \
+  -DBUILD_WITH_QT6=ON \
+  -DBUILD_TESTING=ON \
+  -DCMAKE_BUILD_TYPE=Debug
+cmake --build build --parallel 2
+ctest --test-dir build --output-on-failure
 ```
 
+The application-level Archive integration suite also requires Python 3.11 or newer and real FFmpeg/FFprobe. `ARCHIVE_TEST_FFMPEG` and `ARCHIVE_TEST_FFPROBE` can override the media tool locations.
 
-### Fedora
+## Upstream Media Downloader
 
-Fedora users can use the following script to build from source:
+This repository is derived from [mhogomchungu/media-downloader](https://github.com/mhogomchungu/media-downloader). Upstream Media Downloader provides the general GUI downloader functionality, extension model, translations, and platform packaging foundation used by this fork.
 
-```console
-./build_fedora.sh
-```
-### Arch linux
+For upstream usage information, extension documentation, FAQs, and official upstream releases, consult the upstream repository and wiki. Fork-specific Archive Mode behavior is documented in this repository because it has additional state, safety, recovery, qualification, and acceptance semantics that do not belong to upstream documentation.
 
-Arch linux users can use the following script to build from source:
+## Legal and operational responsibility
 
-```console
-./build_arch.sh
-```
+Use the software only for media and sources you are authorized to access and archive, and in compliance with applicable law and service terms. Archive Mode is designed to preserve evidence and historical state; it does not grant access to content you are not authorized to obtain.
 
-# Screenshots
+## License
 
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-1.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-2.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-3.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-4.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-5.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-6.png)
-
-![media-downloader.png](https://raw.githubusercontent.com/mhogomchungu/media-downloader/main/images/media-downloader-7.png)
-
-# Disclaimer
-
-This program is intended to be used  in a way that does not violate any laws that are applicable to its users.
-
-# License
-
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your option) any later version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+This project retains the licensing terms of the upstream project. See `LICENSE`, `LICENSE.txt`, `GPLv2`, and `GPLv3` in the repository.
