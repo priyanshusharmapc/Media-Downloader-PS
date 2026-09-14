@@ -1,0 +1,14 @@
+Media Downloader PS Archive Mode local-offload manifest
+Date: 2026-09-14
+Baseline source: bad82c16508cdf7ec5daffb9bc92c90271a008f7
+Work tree: /mnt/data/mdps-work/work
+
+Durable non-reproducible work preserved by archive-mode-local-complete.patch.
+Reproducible build directory, extracted Qt packages, and downloaded toolchain caches are intentionally not committed to Git.
+Local evidence preserved separately: configure log, build log, GUI smoke stdout/stderr, CTest LastTest.log, and hashes of locally built executables.
+
+Known local result before offload:
+- archive-core-tests PASS
+- ctest 1/1 PASS
+- archive-cli built
+- media-downloader built
