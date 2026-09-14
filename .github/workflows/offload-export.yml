@@ -18,16 +18,14 @@ jobs:
       - name: Checkout offload branch
         uses: actions/checkout@v4
 
-      - name: Inspect preserved payload
+      - name: Inspect preserved payload bytes
         shell: bash
         run: |
           set -euo pipefail
           sha256sum wip/offload/2026-09-14-archive-mode-local.patch.gz
-          gzip -dc wip/offload/2026-09-14-archive-mode-local.patch.gz > /tmp/archive-mode-local.patch
-          sha256sum /tmp/archive-mode-local.patch
-          wc -c wip/offload/2026-09-14-archive-mode-local.patch.gz /tmp/archive-mode-local.patch
+          wc -c wip/offload/2026-09-14-archive-mode-local.patch.gz
 
-      - name: Upload preserved patch
+      - name: Upload preserved patch as-is
         uses: actions/upload-artifact@v4
         with:
           name: archive-mode-local-offload
