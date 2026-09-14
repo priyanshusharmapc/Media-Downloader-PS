@@ -22,7 +22,7 @@ jobs:
       - name: Prepare matching Linux build toolchain
         run: |
           apt-get update
-          apt-get install -y git ca-certificates cmake ninja-build g++
+          apt-get install -y git ca-certificates cmake ninja-build g++ python3 ffmpeg
           apt-get --download-only -y install qt6-base-dev qt6-base-dev-tools
           mkdir -p /tmp/qt-toolchain
           cp /var/cache/apt/archives/*.deb /tmp/qt-toolchain/
@@ -49,12 +49,24 @@ jobs:
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: ctest --test-dir build --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
+      - name: Configure address and undefined-behavior sanitizer tests
+        run: cmake -S . -B build-sanitized -G Ninja -DBUILD_WITH_QT6=ON -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+      - name: Build instrumented Archive executables
+        run: cmake --build build-sanitized --target archive-core-tests archive-hardening-tests archive-cli archive-fake-tool --parallel 2
+      - name: Sanitizer regression and integration tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+          QT_QPA_PLATFORM: offscreen
+        run: ctest --test-dir build-sanitized --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: linux-test-evidence-${{ github.sha }}
-          path: build/Testing/Temporary
+          path: |
+            build/Testing/Temporary
+            build-sanitized/Testing/Temporary
           if-no-files-found: ignore
 
   windows:
@@ -62,6 +74,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Install Qt6 and matching MinGW
         uses: jurplel/install-qt-action@v4
         with:
@@ -83,10 +98,6 @@ jobs:
         run: cmake -S . -B build -G Ninja -DBUILD_WITH_QT6=ON -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Build
         run: cmake --build build --parallel 2
-      - name: Test
-        env:
-          QT_QPA_PLATFORM: offscreen
-        run: ctest --test-dir build --output-on-failure
       - name: Assemble self-contained portable candidate
         shell: pwsh
         run: |
@@ -150,6 +161,20 @@ jobs:
             'ffmpeg=n9.0.1-29-gad500d59cb sha256=' + $ffmpegSha
           ) | Set-Content "$out/RUNTIME_VERSIONS.txt" -Encoding utf8
           @{ repository=$env:GITHUB_REPOSITORY; commit=$env:GITHUB_SHA; run_id=$env:GITHUB_RUN_ID; qualification='assembled-not-yet-qualified' } | ConvertTo-Json | Set-Content "$out/build-identity.json" -Encoding utf8
+      - name: Full regression and real-media integration tests
+        shell: pwsh
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $env:ARCHIVE_TEST_FFMPEG = "$out/3rdParty/ffmpeg/bin/ffmpeg.exe"
+          $env:ARCHIVE_TEST_FFPROBE = "$out/3rdParty/ffmpeg/bin/ffprobe.exe"
+          ctest --test-dir build --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
+          if ($LASTEXITCODE -ne 0) { throw 'Archive tests failed' }
+          $tokens = $null; $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$out/archive-local-harness.ps1", [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) { throw ($errors | Out-String) }
       - name: Packaged Archive preflight
         shell: pwsh
         run: |
@@ -212,11 +237,11 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
           @{ repository=$env:GITHUB_REPOSITORY; commit=$env:GITHUB_SHA; run_id=$env:GITHUB_RUN_ID; qualification='windows-ci-qualified-for-local-harness'; youtube_acceptance='run archive-local-harness.ps1 on target Windows host' } | ConvertTo-Json | Set-Content "$out/build-identity.json" -Encoding utf8
-          Get-ChildItem $out -File -Recurse | Get-FileHash -Algorithm SHA256 | ForEach-Object {
-            $relative = [IO.Path]::GetRelativePath($out,$_.Path).Replace('\\','/')
+          Get-ChildItem $out -Recurse | Select-Object FullName,Length | Format-Table -AutoSize | Out-String -Width 4096 | Set-Content "$out/PORTABLE_MANIFEST.txt" -Encoding utf8
+          Get-ChildItem $out -File -Recurse | Where-Object { $_.Name -ne 'SHA256SUMS.txt' } | Get-FileHash -Algorithm SHA256 | ForEach-Object {
+            $relative = [IO.Path]::GetRelativePath($out,$_.Path).Replace('\','/')
             "$($_.Hash.ToLowerInvariant())  $relative"
           } | Sort-Object | Set-Content "$out/SHA256SUMS.txt" -Encoding ascii
-          Get-ChildItem $out -Recurse | Select-Object FullName,Length | Format-Table -AutoSize | Out-String -Width 4096 | Set-Content "$out/PORTABLE_MANIFEST.txt" -Encoding utf8
       - uses: actions/upload-artifact@v4
         with:
           name: Media-Downloader-PS-Windows-Qt6-${{ github.sha }}
