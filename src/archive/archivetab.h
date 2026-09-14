@@ -28,6 +28,7 @@ class ArchiveTab : public QObject
     Q_OBJECT
 public:
     explicit ArchiveTab(const Context& ctx);
+    ~ArchiveTab() override;
     void keyPressed(utility::mainWindowKeyCombo);
     void init_done();
     void enableAll();

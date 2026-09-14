@@ -165,7 +165,8 @@ include(CTest)
 
 add_executable(archive-cli
     src/archive/archivecli.cpp
-    src/archive/archivecore.cpp)
+    src/archive/archivecore.cpp
+    src/archive/archive.qrc)
 
 if(BUILD_WITH_QT6)
     target_link_libraries(archive-cli Qt6::Core)
@@ -471,4 +472,29 @@ if(APPLE)
     file( COPY translations/zh_CN.qm DESTINATION     "MediaDownloader.app/Contents/Resources/translations/" )
 
     file( COPY changelog DESTINATION                 "MediaDownloader.app/Contents/Resources/" )
+endif()
+
+if(BUILD_TESTING)
+    add_executable(archive-hardening-tests tests/archive-hardening-tests.cpp src/archive/archivecore.cpp src/archive/archive.qrc)
+    if(BUILD_WITH_QT6)
+        target_link_libraries(archive-hardening-tests Qt6::Core)
+    else()
+        target_link_libraries(archive-hardening-tests Qt5::Core)
+    endif()
+    foreach(case discovery-shape discovery-null discovery-count discovery-error portable-paths source-traversal state-shape source-state-corruption snapshot-identity import-identity import-id-only import-schema partial-recovery-status nested-redaction deleted-title linked-package-file)
+        add_test(NAME archive-${case} COMMAND archive-hardening-tests ${case})
+        set_tests_properties(archive-${case} PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
+    endforeach()
+endif()
+
+if(BUILD_TESTING)
+    add_executable(archive-fake-tool tests/archive-fake-tool.cpp)
+    if(BUILD_WITH_QT6)
+        target_link_libraries(archive-fake-tool Qt6::Core)
+    else()
+        target_link_libraries(archive-fake-tool Qt5::Core)
+    endif()
+    find_package(Python3 3.11 COMPONENTS Interpreter REQUIRED)
+    add_test(NAME archive-integration COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/archive-integration-tests.py --cli $<TARGET_FILE:archive-cli> --fake-tool $<TARGET_FILE:archive-fake-tool>)
+    set_tests_properties(archive-integration PROPERTIES TIMEOUT 180)
 endif()

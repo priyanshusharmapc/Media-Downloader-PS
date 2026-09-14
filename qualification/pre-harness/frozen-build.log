@@ -1,0 +1,67 @@
+[0/1] Re-running CMake...
+-- Could NOT find XKB (missing: XKB_LIBRARY XKB_INCLUDE_DIR) (Required is at least version "0.5.0")
+-- Building With Qt6
+-- Found Python3: /opt/pyvenv/bin/python3 (found suitable version "3.13.5", minimum required is "3.11") found components: Interpreter
+-- Configuring done (5.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: /mnt/data/audit/build-baseline
+[1/25] Automatic MOC and UIC for target archive-core-tests
+[2/24] Automatic MOC and UIC for target archive-cli
+[3/23] Automatic MOC and UIC for target media-downloader
+[4/22] Automatic MOC and UIC for target archive-fake-tool
+[5/20] Automatic MOC and UIC for target archive-hardening-tests
+[6/19] Building CXX object CMakeFiles/media-downloader.dir/src/about.cpp.o
+[7/19] Building CXX object CMakeFiles/media-downloader.dir/src/translator.cpp.o
+[8/19] Building CXX object CMakeFiles/media-downloader.dir/src/settings.cpp.o
+[9/19] Building CXX object CMakeFiles/media-downloader.dir/src/utility.cpp.o
+[10/19] Building CXX object CMakeFiles/media-downloader.dir/src/engines.cpp.o
+[11/19] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecore.cpp.o
+[12/19] Building CXX object CMakeFiles/media-downloader.dir/src/archive/archivecore.cpp.o
+/mnt/data/audit/work/src/archive/archivecore.cpp: In function ‘archive::ProcessResult archive::{anonymous}::runProcess(const QString&, const QStringList&, const QString&, int)’:
+/mnt/data/audit/work/src/archive/archivecore.cpp:263:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+  263 |     if(!r.ok)r.error=QString("Process exited with code %1").arg(r.exitCode);return r;
+      |     ^~
+/mnt/data/audit/work/src/archive/archivecore.cpp:263:77: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+  263 |     if(!r.ok)r.error=QString("Process exited with code %1").arg(r.exitCode);return r;
+      |                                                                             ^~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp: In member function ‘QVector<archive::Source> archive::Store::loadSources(QString*) const’:
+/mnt/data/audit/work/src/archive/archivecore.cpp:480:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  480 |     for(const auto& e:a)out.append(sourceFromJson(e.toObject()));return out;
+      |     ^~~
+/mnt/data/audit/work/src/archive/archivecore.cpp:480:66: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  480 |     for(const auto& e:a)out.append(sourceFromJson(e.toObject()));return out;
+      |                                                                  ^~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp: In member function ‘QVector<archive::CanonicalItem> archive::Store::loadCanonicalItems(QString*) const’:
+/mnt/data/audit/work/src/archive/archivecore.cpp:493:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  493 |     for(const auto& e:a)out.append(canonicalFromJson(e.toObject()));return out;
+      |     ^~~
+/mnt/data/audit/work/src/archive/archivecore.cpp:493:69: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  493 |     for(const auto& e:a)out.append(canonicalFromJson(e.toObject()));return out;
+      |                                                                     ^~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp: In member function ‘QVector<archive::PlaylistItem> archive::Store::loadPlaylistItems(const QString&, QString*) const’:
+/mnt/data/audit/work/src/archive/archivecore.cpp:507:5: warning: this ‘for’ clause does not guard... [-Wmisleading-indentation]
+  507 |     for(const auto& e:a)out.append(playlistItemFromJson(e.toObject()));return out;
+      |     ^~~
+/mnt/data/audit/work/src/archive/archivecore.cpp:507:72: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘for’
+  507 |     for(const auto& e:a)out.append(playlistItemFromJson(e.toObject()));return out;
+      |                                                                        ^~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp: In member function ‘bool archive::MediaExecutor::syncItem(const archive::CanonicalItem&, bool, bool, QString*)’:
+/mnt/data/audit/work/src/archive/archivecore.cpp:1137:5: warning: this ‘if’ clause does not guard... [-Wmisleading-indentation]
+ 1137 |     if(error)*error=errors.join(" | ");return errors.isEmpty();
+      |     ^~
+/mnt/data/audit/work/src/archive/archivecore.cpp:1137:40: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the ‘if’
+ 1137 |     if(error)*error=errors.join(" | ");return errors.isEmpty();
+      |                                        ^~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp: At global scope:
+/mnt/data/audit/work/src/archive/archivecore.cpp:273:9: warning: ‘QString archive::{anonymous}::sourceFolderKey(QString)’ defined but not used [-Wunused-function]
+  273 | QString sourceFolderKey(QString key)
+      |         ^~~~~~~~~~~~~~~
+/mnt/data/audit/work/src/archive/archivecore.cpp:44:12: warning: ‘QByteArray archive::{anonymous}::readAll(const QString&)’ defined but not used [-Wunused-function]
+   44 | QByteArray readAll(const QString& path)
+      |            ^~~~~~~
+[13/19] Linking CXX executable media-downloader
+[14/19] Linking CXX executable archive-cli
+[15/19] Building CXX object CMakeFiles/archive-core-tests.dir/src/archive/archivecore.cpp.o
+[16/19] Linking CXX executable archive-core-tests
+[17/19] Building CXX object CMakeFiles/archive-hardening-tests.dir/src/archive/archivecore.cpp.o
+[18/19] Linking CXX executable archive-hardening-tests

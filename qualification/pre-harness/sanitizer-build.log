@@ -1,0 +1,25 @@
+[1/25] Automatic MOC and UIC for target archive-hardening-tests
+[2/25] Automatic MOC and UIC for target archive-core-tests
+[3/25] Automatic MOC and UIC for target archive-cli
+[4/25] Automatic RCC for src/archive/archive.qrc
+[5/25] Automatic RCC for src/archive/archive.qrc
+[6/25] Automatic RCC for src/archive/archive.qrc
+[7/25] Automatic MOC and UIC for target archive-fake-tool
+[8/25] Building CXX object CMakeFiles/archive-cli.dir/archive-cli_autogen/mocs_compilation.cpp.o
+[9/25] Building CXX object CMakeFiles/archive-cli.dir/archive-cli_autogen/6TJM3ZJZ4N/qrc_archive.cpp.o
+[10/25] Building CXX object CMakeFiles/archive-core-tests.dir/archive-core-tests_autogen/mocs_compilation.cpp.o
+[11/25] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecli.cpp.o
+[12/25] Building CXX object CMakeFiles/archive-core-tests.dir/tests/archive-core-tests.cpp.o
+[13/25] Building CXX object CMakeFiles/archive-core-tests.dir/archive-core-tests_autogen/6TJM3ZJZ4N/qrc_archive.cpp.o
+[14/25] Building CXX object CMakeFiles/archive-hardening-tests.dir/archive-hardening-tests_autogen/mocs_compilation.cpp.o
+[15/25] Building CXX object CMakeFiles/archive-hardening-tests.dir/tests/archive-hardening-tests.cpp.o
+[16/25] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecore.cpp.o
+[17/25] Building CXX object CMakeFiles/archive-hardening-tests.dir/archive-hardening-tests_autogen/6TJM3ZJZ4N/qrc_archive.cpp.o
+[18/25] Building CXX object CMakeFiles/archive-fake-tool.dir/archive-fake-tool_autogen/mocs_compilation.cpp.o
+[19/25] Building CXX object CMakeFiles/archive-core-tests.dir/src/archive/archivecore.cpp.o
+[20/25] Linking CXX executable archive-cli
+[21/25] Linking CXX executable archive-core-tests
+[22/25] Building CXX object CMakeFiles/archive-fake-tool.dir/tests/archive-fake-tool.cpp.o
+[23/25] Linking CXX executable archive-fake-tool
+[24/25] Building CXX object CMakeFiles/archive-hardening-tests.dir/src/archive/archivecore.cpp.o
+[25/25] Linking CXX executable archive-hardening-tests

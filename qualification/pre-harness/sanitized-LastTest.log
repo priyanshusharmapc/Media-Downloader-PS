@@ -1,0 +1,317 @@
+Start testing: Sep 14 18:10 UTC
+----------------------------------------------------------
+1/18 Testing: archive-core
+1/18 Test: archive-core
+Command: "/mnt/data/audit/build-sanitized/archive-core-tests"
+Directory: /mnt/data/audit/build-sanitized
+"archive-core" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+archive-core-tests: PASS
+<end of output>
+Test time =   0.41 sec
+----------------------------------------------------------
+Test Passed.
+"archive-core" end time: Sep 14 18:10 UTC
+"archive-core" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/18 Testing: archive-discovery-shape
+2/18 Test: archive-discovery-shape
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "discovery-shape"
+Directory: /mnt/data/audit/build-sanitized
+"archive-discovery-shape" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+discovery-shape: PASS
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"archive-discovery-shape" end time: Sep 14 18:10 UTC
+"archive-discovery-shape" time elapsed: 00:00:00
+----------------------------------------------------------
+
+3/18 Testing: archive-discovery-null
+3/18 Test: archive-discovery-null
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "discovery-null"
+Directory: /mnt/data/audit/build-sanitized
+"archive-discovery-null" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+discovery-null: PASS
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"archive-discovery-null" end time: Sep 14 18:10 UTC
+"archive-discovery-null" time elapsed: 00:00:00
+----------------------------------------------------------
+
+4/18 Testing: archive-discovery-count
+4/18 Test: archive-discovery-count
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "discovery-count"
+Directory: /mnt/data/audit/build-sanitized
+"archive-discovery-count" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+discovery-count: PASS
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"archive-discovery-count" end time: Sep 14 18:10 UTC
+"archive-discovery-count" time elapsed: 00:00:00
+----------------------------------------------------------
+
+5/18 Testing: archive-discovery-error
+5/18 Test: archive-discovery-error
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "discovery-error"
+Directory: /mnt/data/audit/build-sanitized
+"archive-discovery-error" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+discovery-error: PASS
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"archive-discovery-error" end time: Sep 14 18:10 UTC
+"archive-discovery-error" time elapsed: 00:00:00
+----------------------------------------------------------
+
+6/18 Testing: archive-portable-paths
+6/18 Test: archive-portable-paths
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "portable-paths"
+Directory: /mnt/data/audit/build-sanitized
+"archive-portable-paths" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+portable-paths: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-portable-paths" end time: Sep 14 18:10 UTC
+"archive-portable-paths" time elapsed: 00:00:00
+----------------------------------------------------------
+
+7/18 Testing: archive-source-traversal
+7/18 Test: archive-source-traversal
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "source-traversal"
+Directory: /mnt/data/audit/build-sanitized
+"archive-source-traversal" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+source-traversal: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-source-traversal" end time: Sep 14 18:10 UTC
+"archive-source-traversal" time elapsed: 00:00:00
+----------------------------------------------------------
+
+8/18 Testing: archive-state-shape
+8/18 Test: archive-state-shape
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "state-shape"
+Directory: /mnt/data/audit/build-sanitized
+"archive-state-shape" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+state-shape: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-state-shape" end time: Sep 14 18:10 UTC
+"archive-state-shape" time elapsed: 00:00:00
+----------------------------------------------------------
+
+9/18 Testing: archive-source-state-corruption
+9/18 Test: archive-source-state-corruption
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "source-state-corruption"
+Directory: /mnt/data/audit/build-sanitized
+"archive-source-state-corruption" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+source-state-corruption: PASS
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"archive-source-state-corruption" end time: Sep 14 18:10 UTC
+"archive-source-state-corruption" time elapsed: 00:00:00
+----------------------------------------------------------
+
+10/18 Testing: archive-snapshot-identity
+10/18 Test: archive-snapshot-identity
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "snapshot-identity"
+Directory: /mnt/data/audit/build-sanitized
+"archive-snapshot-identity" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+snapshot-identity: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-snapshot-identity" end time: Sep 14 18:10 UTC
+"archive-snapshot-identity" time elapsed: 00:00:00
+----------------------------------------------------------
+
+11/18 Testing: archive-import-identity
+11/18 Test: archive-import-identity
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "import-identity"
+Directory: /mnt/data/audit/build-sanitized
+"archive-import-identity" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+import-identity: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-import-identity" end time: Sep 14 18:10 UTC
+"archive-import-identity" time elapsed: 00:00:00
+----------------------------------------------------------
+
+12/18 Testing: archive-import-id-only
+12/18 Test: archive-import-id-only
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "import-id-only"
+Directory: /mnt/data/audit/build-sanitized
+"archive-import-id-only" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+import-id-only: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-import-id-only" end time: Sep 14 18:10 UTC
+"archive-import-id-only" time elapsed: 00:00:00
+----------------------------------------------------------
+
+13/18 Testing: archive-import-schema
+13/18 Test: archive-import-schema
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "import-schema"
+Directory: /mnt/data/audit/build-sanitized
+"archive-import-schema" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+import-schema: PASS
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"archive-import-schema" end time: Sep 14 18:10 UTC
+"archive-import-schema" time elapsed: 00:00:00
+----------------------------------------------------------
+
+14/18 Testing: archive-partial-recovery-status
+14/18 Test: archive-partial-recovery-status
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "partial-recovery-status"
+Directory: /mnt/data/audit/build-sanitized
+"archive-partial-recovery-status" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+partial-recovery-status: PASS
+<end of output>
+Test time =   0.12 sec
+----------------------------------------------------------
+Test Passed.
+"archive-partial-recovery-status" end time: Sep 14 18:10 UTC
+"archive-partial-recovery-status" time elapsed: 00:00:00
+----------------------------------------------------------
+
+15/18 Testing: archive-nested-redaction
+15/18 Test: archive-nested-redaction
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "nested-redaction"
+Directory: /mnt/data/audit/build-sanitized
+"archive-nested-redaction" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+nested-redaction: PASS
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"archive-nested-redaction" end time: Sep 14 18:10 UTC
+"archive-nested-redaction" time elapsed: 00:00:00
+----------------------------------------------------------
+
+16/18 Testing: archive-deleted-title
+16/18 Test: archive-deleted-title
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "deleted-title"
+Directory: /mnt/data/audit/build-sanitized
+"archive-deleted-title" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+deleted-title: PASS
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"archive-deleted-title" end time: Sep 14 18:10 UTC
+"archive-deleted-title" time elapsed: 00:00:00
+----------------------------------------------------------
+
+17/18 Testing: archive-linked-package-file
+17/18 Test: archive-linked-package-file
+Command: "/mnt/data/audit/build-sanitized/archive-hardening-tests" "linked-package-file"
+Directory: /mnt/data/audit/build-sanitized
+"archive-linked-package-file" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+linked-package-file: PASS
+<end of output>
+Test time =   0.06 sec
+----------------------------------------------------------
+Test Passed.
+"archive-linked-package-file" end time: Sep 14 18:10 UTC
+"archive-linked-package-file" time elapsed: 00:00:00
+----------------------------------------------------------
+
+18/18 Testing: archive-integration
+18/18 Test: archive-integration
+Command: "/opt/pyvenv/bin/python3" "/mnt/data/audit/work/tests/archive-integration-tests.py" "--cli" "/mnt/data/audit/build-sanitized/archive-cli" "--fake-tool" "/mnt/data/audit/build-sanitized/archive-fake-tool"
+Directory: /mnt/data/audit/build-sanitized
+"archive-integration" start time: Sep 14 18:10 UTC
+Output:
+----------------------------------------------------------
+test_archive_skip_retry_argument_order (__main__.ArchiveIntegration.test_archive_skip_retry_argument_order) ... ok
+test_concurrent_writer_and_old_live_lock_are_rejected (__main__.ArchiveIntegration.test_concurrent_writer_and_old_live_lock_are_rejected) ... ok
+test_corrupt_history_cannot_be_extended_or_replaced (__main__.ArchiveIntegration.test_corrupt_history_cannot_be_extended_or_replaced) ... ok
+test_corrupt_state_is_not_silently_replaced (__main__.ArchiveIntegration.test_corrupt_state_is_not_silently_replaced) ... ok
+test_crashed_writer_lock_is_recovered (__main__.ArchiveIntegration.test_crashed_writer_lock_is_recovered) ... ok
+test_csv_formula_and_playlist_line_injection_are_neutralized (__main__.ArchiveIntegration.test_csv_formula_and_playlist_line_injection_are_neutralized) ... ok
+test_duplicate_playlist_occurrences_survive_removal_and_reappearance (__main__.ArchiveIntegration.test_duplicate_playlist_occurrences_survive_removal_and_reappearance) ... ok
+test_failed_second_representation_is_atomic_and_retryable (__main__.ArchiveIntegration.test_failed_second_representation_is_atomic_and_retryable) ... ok
+test_invalid_cli_arguments_have_no_filesystem_side_effects (__main__.ArchiveIntegration.test_invalid_cli_arguments_have_no_filesystem_side_effects) ... ok
+test_linked_state_directory_is_refused (__main__.ArchiveIntegration.test_linked_state_directory_is_refused) ... ok
+test_malformed_journal_payload_is_rejected_before_any_write (__main__.ArchiveIntegration.test_malformed_journal_payload_is_rejected_before_any_write) ... ok
+test_metadata_only_id_only_import (__main__.ArchiveIntegration.test_metadata_only_id_only_import) ... ok
+test_mid_commit_restart_rolls_forward_idempotently (__main__.ArchiveIntegration.test_mid_commit_restart_rolls_forward_idempotently) ... ok
+test_missing_complete_media_cannot_report_pass (__main__.ArchiveIntegration.test_missing_complete_media_cannot_report_pass) ... ok
+test_normalization_preserves_original_bytes (__main__.ArchiveIntegration.test_normalization_preserves_original_bytes) ... ok
+test_partial_scan_preserves_membership (__main__.ArchiveIntegration.test_partial_scan_preserves_membership) ... ok
+test_real_import_and_immutable_accepted_evidence (__main__.ArchiveIntegration.test_real_import_and_immutable_accepted_evidence) ... ok
+test_resource_upgrade_preserves_prior_contract (__main__.ArchiveIntegration.test_resource_upgrade_preserves_prior_contract) ... ok
+test_scan_sync_verify_and_idempotent_rerun (__main__.ArchiveIntegration.test_scan_sync_verify_and_idempotent_rerun) ... ok
+test_transaction_conflict_preserves_all_bytes (__main__.ArchiveIntegration.test_transaction_conflict_preserves_all_bytes) ... ok
+test_valid_existing_media_is_adopted_when_source_unavailable (__main__.ArchiveIntegration.test_valid_existing_media_is_adopted_when_source_unavailable) ... ok
+test_windows_harness_positive_and_tampered_package_negative (__main__.ArchiveIntegration.test_windows_harness_positive_and_tampered_package_negative) ... skipped 'Windows PowerShell acceptance wrapper'
+
+----------------------------------------------------------------------
+Ran 22 tests in 11.595s
+
+OK (skipped=1)
+<end of output>
+Test time =  12.37 sec
+----------------------------------------------------------
+Test Passed.
+"archive-integration" end time: Sep 14 18:11 UTC
+"archive-integration" time elapsed: 00:00:12
+----------------------------------------------------------
+
+End testing: Sep 14 18:11 UTC

@@ -1,0 +1,12 @@
+[1/12] Building CXX object CMakeFiles/media-downloader.dir/media-downloader_autogen/UVLADIE3JM/qrc_icon.cpp.o
+[2/12] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecli.cpp.o
+[3/12] Building CXX object CMakeFiles/media-downloader.dir/src/engines/bun.cpp.o
+[4/12] Building CXX object CMakeFiles/archive-core-tests.dir/tests/archive-core-tests.cpp.o
+[5/12] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecore.cpp.o
+[6/12] Building CXX object CMakeFiles/archive-hardening-tests.dir/tests/archive-hardening-tests.cpp.o
+[7/12] Linking CXX executable media-downloader
+[8/12] Linking CXX executable archive-cli
+[9/12] Building CXX object CMakeFiles/archive-core-tests.dir/src/archive/archivecore.cpp.o
+[10/12] Linking CXX executable archive-core-tests
+[11/12] Building CXX object CMakeFiles/archive-hardening-tests.dir/src/archive/archivecore.cpp.o
+[12/12] Linking CXX executable archive-hardening-tests

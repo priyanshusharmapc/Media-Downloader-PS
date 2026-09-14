@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "3b0d705818b00dfd69d5c21b9cadec17f5f1abeb",
+  "baseline_tree": "fe9052dd75fa9f16451132893c0a938bee11f939",
+  "observed_at": "2026-09-14T18:11:55.441154+00:00",
+  "normal_ctest": {
+    "passed": 18,
+    "failed": 0
+  },
+  "sanitized_ctest": {
+    "passed": 18,
+    "failed": 0
+  },
+  "integration_methods": {
+    "total": 22,
+    "linux_passed": 21,
+    "linux_skipped": 1
+  },
+  "target_windows_live_harness": "NOT_RUN",
+  "updated_windows_ci": "PENDING",
+  "evidence": {
+    "baseline-tests.log": "a56c6db2b653808f664579dde218c7445b78ebbe20a58736f601335e28af60ed",
+    "baseline-tests.xml": "3f2ec9ae99693f19136e7483986e6f34b1663617ef6f7ed798665367f158687e",
+    "frozen-build.log": "0c5237c2e15d0d7c66e17aac5142909e2827e947d442a0389291b7513e282f97",
+    "frozen-tests.log": "a76cbb103d3c8081ab4522b935cdbc4063efc3e80db69c2b5b2063c4c1bca13a",
+    "frozen-tests.xml": "dd6c9c15725414c793c70aaa4137c6703cae659ca5dce3455fcb2170b9925218",
+    "full-build-complete.log": "4763cbbcc9da83961d02463f7c82751c16a6bd18fd691267f9280a9b2755bd1a",
+    "normal-LastTest.log": "7eadc5996d561eb8c31fb1fba18852a91c87a79081785619edde8a674b6df271",
+    "sanitized-LastTest.log": "6c3b62b30879b419081ba0b0faee0a203ed262f833f97f7b8c0f2bfed12e9bff",
+    "sanitized-tests.log": "587512c1f1ee63bb12a4d5bbe483bc2b21cc7f831d353d724bffe2f4838b1669",
+    "sanitized-tests.xml": "e0241aa12ca10818374a698c6165e3ce2a420e4ba0e0700ad84231a9073f0c5f",
+    "sanitizer-build.log": "cec3ba490e8006682ca53bdbaffad2f61b642961b5e17982d3106bcecf586b6b",
+    "sanitizer-configure.log": "188326c2d8131aa813ea095d8fb63976c8097303cb5541e1c3e190eb8c2d20d0"
+  }
+}

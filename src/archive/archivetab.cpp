@@ -44,13 +44,15 @@ QString readText(const QString& path)
 {
     QFile f(path); if(!f.open(QIODevice::ReadOnly|QIODevice::Text)) return {}; return QString::fromUtf8(f.readAll());
 }
-QString pretty(const QString& s){return s.isEmpty()?QStringLiteral("—"):s;}
+QString pretty(const QString& s){return s.isEmpty()?QStringLiteral("-"):s;}
 }
 
 ArchiveTab::ArchiveTab(const Context& ctx):QObject(&ctx.mainWidget()),m_ctx(ctx)
 {
     buildUi(); wireUi();
 }
+
+ArchiveTab::~ArchiveTab(){exiting();}
 
 void ArchiveTab::buildUi()
 {
@@ -165,7 +167,7 @@ bool ArchiveTab::ensureReady(QString* error)
 
 void ArchiveTab::init_done(){m_root=configuredRoot();QString e;if(!ensureReady(&e))m_statusLabel->setText(tr("Archive initialization failed: %1").arg(e));refreshAll();}
 void ArchiveTab::enableAll(){if(!m_busy)setBusy(false);}
-void ArchiveTab::disableAll(){const QList<QWidget*> controls={m_add,m_remove,m_scan,m_syncSelected,m_syncAll,m_retry,m_more};
+void ArchiveTab::disableAll(){const QList<QWidget*> controls={m_add,m_remove,m_scan,m_syncSelected,m_syncAll,m_retry,m_more,m_sources,m_search,m_filter};
     for(auto* w:controls) w->setEnabled(false);}
 void ArchiveTab::resetMenu(){}
 void ArchiveTab::exiting(){m_stopRequested=true;if(m_watcher&&m_watcher->isRunning())m_watcher->waitForFinished();}
@@ -175,7 +177,7 @@ void ArchiveTab::tabExited(){}
 void ArchiveTab::keyPressed(utility::mainWindowKeyCombo){}
 void ArchiveTab::textAlignmentChanged(Qt::LayoutDirection d){m_page->setLayoutDirection(d);}
 
-void ArchiveTab::refreshAll(){QString e;if(!ensureReady(&e)){m_statusLabel->setText(e);return;}refreshSources();refreshTable();refreshDetails();if(m_activityToggle->isChecked())refreshActivity();}
+void ArchiveTab::refreshAll(){if(m_busy)return;QString e;if(!ensureReady(&e)){m_statusLabel->setText(e);return;}refreshSources();refreshTable();refreshDetails();if(m_activityToggle->isChecked())refreshActivity();}
 
 void ArchiveTab::refreshSources()
 {
@@ -206,7 +208,7 @@ void ArchiveTab::refreshTable()
         if(filter!="All"){
             bool match=false;if(filter=="Protected")match=status=="Protected";else if(filter=="Needs Sync")match=status=="Needs Sync";else if(filter=="Missing")match=status=="Missing";else if(filter=="Unavailable")match=p.availability!="public";else if(filter=="Removed")match=p.membership=="removed";else match=status==filter;if(!match)continue;
         }
-        const int r=m_table->rowCount();m_table->insertRow(r);auto* pos=new QTableWidgetItem(p.position<0?QStringLiteral("—"):QString::number(p.position));pos->setData(Qt::UserRole,p.itemKey);m_table->setItem(r,0,pos);m_table->setItem(r,1,new QTableWidgetItem(p.title));m_table->setItem(r,2,new QTableWidgetItem(p.availability));m_table->setItem(r,3,new QTableWidgetItem(has?c.video.state:"missing"));m_table->setItem(r,4,new QTableWidgetItem(has?c.audio.state:"missing"));m_table->setItem(r,5,new QTableWidgetItem(status));
+        const int r=m_table->rowCount();m_table->insertRow(r);auto* pos=new QTableWidgetItem(p.position<0?QStringLiteral("-"):QString::number(p.position));pos->setData(Qt::UserRole,p.itemKey);m_table->setItem(r,0,pos);m_table->setItem(r,1,new QTableWidgetItem(p.title));m_table->setItem(r,2,new QTableWidgetItem(p.availability));m_table->setItem(r,3,new QTableWidgetItem(has?c.video.state:"missing"));m_table->setItem(r,4,new QTableWidgetItem(has?c.audio.state:"missing"));m_table->setItem(r,5,new QTableWidgetItem(status));
     }
     m_healthLabel->setText(source.key.isEmpty()?tr("No playlist selected"):tr("%1  |  All %2  |  Protected %3  |  Needs Work %4  |  Unavailable %5  |  Removed %6  |  Last scan %7").arg(source.title.isEmpty()?source.key:source.title).arg(playlist.size()).arg(protectedCount).arg(needs).arg(unavailable).arg(removed).arg(pretty(source.lastScanAt)));
 }
@@ -228,7 +230,7 @@ void ArchiveTab::refreshActivity()
 
 void ArchiveTab::setBusy(bool busy,const QString& text)
 {
-    m_busy=busy;const QList<QWidget*> controls={m_add,m_remove,m_scan,m_syncSelected,m_syncAll,m_retry,m_more};
+    m_busy=busy;const QList<QWidget*> controls={m_add,m_remove,m_scan,m_syncSelected,m_syncAll,m_retry,m_more,m_sources,m_search,m_filter};
     for(auto* w:controls) w->setEnabled(!busy);m_stop->setEnabled(busy);if(!text.isEmpty())m_statusLabel->setText(text);else if(!busy)m_statusLabel->setText(tr("Idle"));
 }
 
@@ -239,12 +241,27 @@ void ArchiveTab::browseRoot()
 
 void ArchiveTab::addPlaylist()
 {
-    QString e;if(!ensureReady(&e)){QMessageBox::critical(m_page,tr("Archive"),e);return;}bool ok=false;const auto url=QInputDialog::getText(m_page,tr("Add Playlist"),tr("Playlist URL:"),QLineEdit::Normal,{},&ok).trimmed();if(!ok||url.isEmpty())return;const auto key=archive::sourceKeyFromUrl(url);auto sources=archive::Store(archive::Paths(m_root)).loadSources();for(const auto& s:sources)if(s.key==key){QMessageBox::information(m_page,tr("Add Playlist"),tr("This playlist is already registered."));return;}auto title=QInputDialog::getText(m_page,tr("Add Playlist"),tr("Display name:"),QLineEdit::Normal,key,&ok).trimmed();if(!ok)return;archive::Source s;s.key=key;s.url=url;s.title=title.isEmpty()?key:title;s.addedAt=QDateTime::currentDateTime().toString(Qt::ISODateWithMs);sources.append(s);archive::Store store{archive::Paths(m_root)};if(!store.saveSources(sources,&e)){QMessageBox::critical(m_page,tr("Add Playlist"),e);return;}archive::ActivityLogger logger{archive::Paths(m_root)};logger.event("INFO","source","playlist_added",{{"source_key",key},{"url",url},{"title",s.title}});refreshAll();for(int i=0;i<m_sources->count();++i)if(m_sources->item(i)->data(Qt::UserRole).toString()==key){m_sources->setCurrentRow(i);break;}
+    QString error;if(!ensureReady(&error)){QMessageBox::critical(m_page,tr("Archive"),error);return;}
+    bool ok=false;const auto url=QInputDialog::getText(m_page,tr("Add Playlist"),tr("YouTube playlist URL:"),QLineEdit::Normal,{},&ok).trimmed();if(!ok||url.isEmpty())return;
+    const auto key=archive::sourceKeyFromUrl(url);if(key.isEmpty()){QMessageBox::warning(m_page,tr("Add Playlist"),tr("Enter a valid YouTube playlist URL containing a list ID."));return;}
+    const auto title=QInputDialog::getText(m_page,tr("Add Playlist"),tr("Display name:"),QLineEdit::Normal,key,&ok).trimmed();if(!ok)return;
+    archive::Paths paths(m_root);archive::SyncLock lock(paths);if(!lock.tryLock()){QMessageBox::warning(m_page,tr("Archive"),lock.errorString());return;}
+    archive::Store store(paths);auto sources=store.loadSources(&error);if(!error.isEmpty()){QMessageBox::critical(m_page,tr("Archive"),error);return;}
+    for(const auto& source:sources)if(source.key==key){QMessageBox::information(m_page,tr("Add Playlist"),tr("This playlist is already registered."));return;}
+    archive::Source source;source.key=key;source.url=url;source.title=title.isEmpty()?key:title;source.addedAt=QDateTime::currentDateTime().toString(Qt::ISODateWithMs);sources.append(source);
+    if(!store.saveSources(sources,&error)){QMessageBox::critical(m_page,tr("Add Playlist"),error);return;}
+    archive::ActivityLogger logger(paths);logger.event("INFO","source","playlist_added",{{"source_key",key},{"url",url},{"title",source.title}});
+    lock.unlock();refreshAll();for(int i=0;i<m_sources->count();++i)if(m_sources->item(i)->data(Qt::UserRole).toString()==key){m_sources->setCurrentRow(i);break;}
 }
-
 void ArchiveTab::removePlaylist()
 {
-    const auto s=selectedSource();if(s.key.isEmpty()||m_busy)return;if(QMessageBox::question(m_page,tr("Remove Playlist"),tr("Stop managing '%1'? Archived media and historical playlist files will not be deleted.").arg(s.title))!=QMessageBox::Yes)return;archive::Store store{archive::Paths(m_root)};auto sources=store.loadSources();for(int i=sources.size()-1;i>=0;--i)if(sources[i].key==s.key)sources.remove(i);QString e;if(!store.saveSources(sources,&e)){QMessageBox::critical(m_page,tr("Remove Playlist"),e);return;}archive::ActivityLogger logger{archive::Paths(m_root)};logger.event("INFO","source","playlist_unregistered",{{"source_key",s.key}});refreshAll();
+    const auto source=selectedSource();if(source.key.isEmpty()||m_busy)return;
+    if(QMessageBox::question(m_page,tr("Remove Playlist"),tr("Stop managing '%1'? Archived media and historical playlist files will not be deleted.").arg(source.title))!=QMessageBox::Yes)return;
+    archive::Paths paths(m_root);archive::SyncLock lock(paths);if(!lock.tryLock()){QMessageBox::warning(m_page,tr("Archive"),lock.errorString());return;}
+    archive::Store store(paths);QString error;auto sources=store.loadSources(&error);if(!error.isEmpty()){QMessageBox::critical(m_page,tr("Archive"),error);return;}
+    for(int i=sources.size()-1;i>=0;--i)if(sources[i].key==source.key)sources.remove(i);
+    if(!store.saveSources(sources,&error)){QMessageBox::critical(m_page,tr("Remove Playlist"),error);return;}
+    archive::ActivityLogger logger(paths);logger.event("INFO","source","playlist_unregistered",{{"source_key",source.key}});lock.unlock();refreshAll();
 }
 
 void ArchiveTab::scanSelected(){const auto s=selectedSource();if(!s.key.isEmpty())runSources({s},false,tr("Scanning %1").arg(s.title));}
@@ -255,7 +272,7 @@ void ArchiveTab::stopAfterCurrent(){m_stopRequested=true;m_statusLabel->setText(
 
 void ArchiveTab::processImports()
 {
-    if(m_busy)return;runAsync(tr("Processing external imports"),[this]{archive::Paths p(m_root);archive::Store store(p);archive::ActivityLogger logger(p);archive::RecoveryImporter importer(runtimeConfig(),store,logger);QStringList failures;const auto accepted=importer.ingestPending(&failures);QJsonObject o{{"accepted",accepted},{"failures",QJsonArray::fromStringList(failures)}};return QString::fromUtf8(QJsonDocument(o).toJson(QJsonDocument::Compact));});
+    if(m_busy)return;m_stopRequested=false;runAsync(tr("Processing external imports"),[this]{archive::Paths p(m_root);archive::Store store(p);archive::ActivityLogger logger(p);archive::RecoveryImporter importer(runtimeConfig(),store,logger);QStringList failures;const auto accepted=importer.ingestPending(&failures,[this]{return m_stopRequested.load();});QJsonObject o{{"accepted",accepted},{"failure_count",failures.size()},{"stopped",m_stopRequested.load()},{"failures",QJsonArray::fromStringList(failures)}};return QString::fromUtf8(QJsonDocument(o).toJson(QJsonDocument::Compact));});
 }
 
 void ArchiveTab::runSources(const QVector<archive::Source>& sources,bool downloads,const QString& name)
@@ -267,17 +284,29 @@ QString ArchiveTab::operationScanOrSync(QVector<archive::Source> sources,bool do
 {
     archive::Paths paths(m_root);archive::Store store(paths);QString error;if(!store.initialize(&error))return QString("ERROR:")+error;archive::ActivityLogger logger(paths);archive::SyncLock lock(paths);if(!lock.tryLock())return "ERROR:"+lock.errorString();QJsonObject result;int totalObserved=0,totalFailures=0,totalDownloaded=0;QStringList failures;
     logger.event("INFO","application",doDownloads?"sync_session_started":"scan_session_started",{{"source_count",sources.size()}});
-    for(auto& source:sources){if(m_stopRequested.load())break;archive::PlaylistDiscovery discovery(runtimeConfig(),logger);auto snapshot=discovery.discover(source);auto sum=store.reconcile(source,snapshot,&logger);if(!sum.committed){failures<<source.key+": "+sum.error;++totalFailures;continue;}totalObserved+=sum.observed;if(!doDownloads)continue;
+    for(auto& source:sources){if(m_stopRequested.load())break;archive::PlaylistDiscovery discovery(runtimeConfig(),logger);auto snapshot=discovery.discover(source);auto sum=store.reconcile(source,snapshot,&logger);if(!sum.committed){failures<<source.key+": "+sum.error;++totalFailures;continue;}totalObserved+=sum.observed;if(!snapshot.complete){++totalFailures;failures<<source.key+": "+snapshot.error;continue;}if(!doDownloads)continue;
         auto playlist=store.loadPlaylistItems(source.key);auto canonical=store.loadCanonicalItems();QHash<QString,archive::CanonicalItem> map;for(const auto& c:canonical)map[c.key]=c;
-        for(const auto& p:playlist){if(m_stopRequested.load())break;if(p.membership!="active"||p.availability!="public"||!map.contains(p.itemKey))continue;auto c=map[p.itemKey];if(c.video.state=="complete"&&c.audio.state=="complete")continue;archive::MediaExecutor executor(runtimeConfig(),store,logger);QString e;if(executor.syncItem(c,true,true,&e))++totalDownloaded;else{++totalFailures;failures<<p.itemKey+": "+e;}}
-        store.writeProjections(source.key,nullptr);
+        for(const auto& p:playlist){if(m_stopRequested.load())break;if(p.membership!="active"||!map.contains(p.itemKey))continue;auto c=map[p.itemKey];if(p.availability!="public"&&c.video.state!="complete"&&c.audio.state!="complete")continue;archive::MediaExecutor executor(runtimeConfig(),store,logger);QString e;if(executor.syncItem(c,true,true,&e))++totalDownloaded;else{++totalFailures;failures<<p.itemKey+": "+e;}}
+        QString projectionError;if(!store.writeAllProjections(&projectionError)){++totalFailures;failures<<projectionError;}
     }
     lock.unlock();result["observed"]=totalObserved;result["completed_items"]=totalDownloaded;result["failure_count"]=totalFailures;result["stopped"]=m_stopRequested.load();result["failures"]=QJsonArray::fromStringList(failures);logger.event(totalFailures?"WARNING":"INFO","application",doDownloads?"sync_session_completed":"scan_session_completed",result);return QString::fromUtf8(QJsonDocument(result).toJson(QJsonDocument::Compact));
 }
 
 void ArchiveTab::runAsync(const QString& operationName,const std::function<QString()>& fn)
 {
-    if(m_busy)return;setBusy(true,operationName);m_watcher=new QFutureWatcher<QString>(this);QObject::connect(m_watcher,&QFutureWatcher<QString>::finished,[this,operationName]{const auto result=m_watcher->result();m_watcher->deleteLater();m_watcher=nullptr;setBusy(false);if(result.startsWith("ERROR:")){m_statusLabel->setText(result);QMessageBox::warning(m_page,tr("Archive Operation"),result.mid(6));}else{m_statusLabel->setText(operationName+tr(" completed"));}refreshAll();});m_watcher->setFuture(QtConcurrent::run(fn));
+    if(m_busy)return;setBusy(true,operationName);m_watcher=new QFutureWatcher<QString>(this);
+    QObject::connect(m_watcher,&QFutureWatcher<QString>::finished,this,[this,operationName]{
+        const auto result=m_watcher->result();m_watcher->deleteLater();m_watcher=nullptr;setBusy(false);
+        if(result.startsWith("ERROR:")){m_statusLabel->setText(result);QMessageBox::warning(m_page,tr("Archive Operation"),result.mid(6));}
+        else {
+            const auto report=QJsonDocument::fromJson(result.toUtf8()).object();const auto failures=report.value("failure_count").toInt();
+            if(report.value("stopped").toBool())m_statusLabel->setText(tr("Stopped safely after the current item. Remaining work is not complete."));
+            else if(failures>0){m_statusLabel->setText(tr("Finished with %1 failure(s). Review Activity and retry.").arg(failures));QMessageBox box(QMessageBox::Warning,tr("Archive Operation"),m_statusLabel->text(),QMessageBox::Ok,m_page);box.setDetailedText(result);box.exec();}
+            else m_statusLabel->setText(operationName+tr(" completed successfully"));
+        }
+        refreshAll();
+    });
+    m_watcher->setFuture(QtConcurrent::run([fn]{try{return fn();}catch(const std::exception& e){return QString("ERROR:")+QString::fromUtf8(e.what());}catch(...){return QString("ERROR:Unexpected archive worker exception");}}));
 }
 
 void ArchiveTab::openPath(const QString& path){if(!path.isEmpty())QDesktopServices::openUrl(QUrl::fromLocalFile(path));}

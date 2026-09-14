@@ -1,0 +1,42 @@
+Internal ctest changing into directory: /mnt/data/audit/build-sanitized
+Test project /mnt/data/audit/build-sanitized
+      Start  1: archive-core
+ 1/18 Test  #1: archive-core ......................   Passed    0.41 sec
+      Start  2: archive-discovery-shape
+ 2/18 Test  #2: archive-discovery-shape ...........   Passed    0.02 sec
+      Start  3: archive-discovery-null
+ 3/18 Test  #3: archive-discovery-null ............   Passed    0.02 sec
+      Start  4: archive-discovery-count
+ 4/18 Test  #4: archive-discovery-count ...........   Passed    0.02 sec
+      Start  5: archive-discovery-error
+ 5/18 Test  #5: archive-discovery-error ...........   Passed    0.02 sec
+      Start  6: archive-portable-paths
+ 6/18 Test  #6: archive-portable-paths ............   Passed    0.05 sec
+      Start  7: archive-source-traversal
+ 7/18 Test  #7: archive-source-traversal ..........   Passed    0.05 sec
+      Start  8: archive-state-shape
+ 8/18 Test  #8: archive-state-shape ...............   Passed    0.05 sec
+      Start  9: archive-source-state-corruption
+ 9/18 Test  #9: archive-source-state-corruption ...   Passed    0.06 sec
+      Start 10: archive-snapshot-identity
+10/18 Test #10: archive-snapshot-identity .........   Passed    0.05 sec
+      Start 11: archive-import-identity
+11/18 Test #11: archive-import-identity ...........   Passed    0.05 sec
+      Start 12: archive-import-id-only
+12/18 Test #12: archive-import-id-only ............   Passed    0.05 sec
+      Start 13: archive-import-schema
+13/18 Test #13: archive-import-schema .............   Passed    0.05 sec
+      Start 14: archive-partial-recovery-status
+14/18 Test #14: archive-partial-recovery-status ...   Passed    0.12 sec
+      Start 15: archive-nested-redaction
+15/18 Test #15: archive-nested-redaction ..........   Passed    0.06 sec
+      Start 16: archive-deleted-title
+16/18 Test #16: archive-deleted-title .............   Passed    0.07 sec
+      Start 17: archive-linked-package-file
+17/18 Test #17: archive-linked-package-file .......   Passed    0.06 sec
+      Start 18: archive-integration
+18/18 Test #18: archive-integration ...............   Passed   12.37 sec
+
+100% tests passed, 0 tests failed out of 18
+
+Total Test time (real) =  13.56 sec

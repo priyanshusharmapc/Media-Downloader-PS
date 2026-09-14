@@ -1,0 +1,155 @@
+Internal ctest changing into directory: /mnt/data/audit/build-baseline
+Test project /mnt/data/audit/build-baseline
+      Start  1: archive-core
+ 1/17 Test  #1: archive-core ......................   Passed    0.10 sec
+      Start  2: archive-discovery-shape
+ 2/17 Test  #2: archive-discovery-shape ...........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-shape: FAIL: non-playlist JSON must not be complete
+
+      Start  3: archive-discovery-null
+ 3/17 Test  #3: archive-discovery-null ............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-null: FAIL: null entries must prevent removal inference
+
+      Start  4: archive-discovery-count
+ 4/17 Test  #4: archive-discovery-count ...........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-count: FAIL: truncated playlist must be partial
+
+      Start  5: archive-discovery-error
+ 5/17 Test  #5: archive-discovery-error ...........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-error: FAIL: ignore-errors cannot authorize removals
+
+      Start  6: archive-portable-paths
+ 6/17 Test  #6: archive-portable-paths ............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+portable-paths: FAIL: unsafe portable path accepted: C:escape
+
+      Start  7: archive-source-traversal
+ 7/17 Test  #7: archive-source-traversal ..........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+source-traversal: FAIL: unsafe source key must fail
+
+      Start  8: archive-state-shape
+ 8/17 Test  #8: archive-state-shape ...............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+state-shape: FAIL: wrong JSON root must be an error
+
+      Start  9: archive-source-state-corruption
+ 9/17 Test  #9: archive-source-state-corruption ...***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+source-state-corruption: FAIL: corrupt sources must block reconciliation
+
+      Start 10: archive-snapshot-identity
+10/17 Test #10: archive-snapshot-identity .........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+snapshot-identity: FAIL: cross-source snapshot accepted
+
+      Start 11: archive-import-identity
+11/17 Test #11: archive-import-identity ...........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-identity: FAIL: conflicting identities accepted
+
+      Start 12: archive-import-id-only
+12/17 Test #12: archive-import-id-only ............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-id-only: FAIL: documented youtube_id-only target rejected
+
+      Start 13: archive-import-schema
+13/17 Test #13: archive-import-schema .............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-schema: FAIL: unsafe package/schema accepted
+
+      Start 14: archive-partial-recovery-status
+14/17 Test #14: archive-partial-recovery-status ...***Failed    0.02 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+partial-recovery-status: FAIL: audio still missing but recovery cleared
+
+      Start 15: archive-nested-redaction
+15/17 Test #15: archive-nested-redaction ..........***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+nested-redaction: FAIL: nested credential leaked
+
+      Start 16: archive-deleted-title
+16/17 Test #16: archive-deleted-title .............***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+deleted-title: FAIL: recovery report lost known title
+
+      Start 17: archive-linked-package-file
+17/17 Test #17: archive-linked-package-file .......***Failed    0.01 sec
+Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+linked-package-file: FAIL: symlink escaped package boundary
+
+
+6% tests passed, 16 tests failed out of 17
+
+Total Test time (real) =   0.28 sec
+
+The following tests FAILED:
+	  2 - archive-discovery-shape (Failed)
+	  3 - archive-discovery-null (Failed)
+	  4 - archive-discovery-count (Failed)
+	  5 - archive-discovery-error (Failed)
+	  6 - archive-portable-paths (Failed)
+	  7 - archive-source-traversal (Failed)
+	  8 - archive-state-shape (Failed)
+	  9 - archive-source-state-corruption (Failed)
+	 10 - archive-snapshot-identity (Failed)
+	 11 - archive-import-identity (Failed)
+	 12 - archive-import-id-only (Failed)
+	 13 - archive-import-schema (Failed)
+	 14 - archive-partial-recovery-status (Failed)
+	 15 - archive-nested-redaction (Failed)
+	 16 - archive-deleted-title (Failed)
+	 17 - archive-linked-package-file (Failed)
+Errors while running CTest

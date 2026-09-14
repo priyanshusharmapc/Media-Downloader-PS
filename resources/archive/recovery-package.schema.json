@@ -3,32 +3,78 @@
   "$id": "https://media-downloader-ps.local/schemas/recovery-package-v1.json",
   "title": "Media Downloader PS Recovery Package",
   "type": "object",
-  "required": ["schema_version", "package_id", "target", "provenance"],
+  "required": [
+    "schema_version",
+    "package_id",
+    "target",
+    "provenance"
+  ],
   "properties": {
-    "schema_version": { "const": 1 },
-    "package_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "schema_version": {
+      "const": 1
+    },
+    "package_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9_-]{1,160}$"
+    },
     "target": {
       "type": "object",
       "properties": {
-        "item_key": { "type": "string" },
-        "youtube_id": { "type": "string" }
+        "item_key": {
+          "type": "string",
+          "pattern": "^youtube:[A-Za-z0-9_-]{11}$"
+        },
+        "youtube_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{11}$"
+        }
       },
       "anyOf": [
-        { "required": ["item_key"] },
-        { "required": ["youtube_id"] }
+        {
+          "required": [
+            "item_key"
+          ]
+        },
+        {
+          "required": [
+            "youtube_id"
+          ]
+        }
       ],
       "additionalProperties": true
     },
     "provenance": {
       "type": "object",
-      "required": ["method"],
+      "required": [
+        "method"
+      ],
       "properties": {
-        "method": { "type": "string", "minLength": 1 },
-        "recovered_by": { "type": "string" },
-        "recovered_at": { "type": "string" },
-        "source_url": { "type": "string" },
-        "confidence": { "enum": ["low", "medium", "high", "verified"] },
-        "notes": { "type": "string" }
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "recovered_by": {
+          "type": "string"
+        },
+        "recovered_at": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "confidence": {
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "verified"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
       },
       "additionalProperties": true
     },
@@ -37,27 +83,57 @@
       "properties": {
         "video": {
           "type": "object",
-          "required": ["file"],
-          "properties": { "file": { "type": "string", "minLength": 1 } },
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
           "additionalProperties": true
         },
         "audio": {
           "type": "object",
-          "required": ["file"],
-          "properties": { "file": { "type": "string", "minLength": 1 } },
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
           "additionalProperties": true
         }
       },
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "metadata": {
       "type": "object",
       "properties": {
-        "canonical_title": { "type": "string" },
-        "source_title": { "type": "string" },
-        "original_url": { "type": "string" },
-        "source_tags": { "type": "array", "items": { "type": "string" } },
-        "user_tags": { "type": "array", "items": { "type": "string" } }
+        "canonical_title": {
+          "type": "string"
+        },
+        "source_title": {
+          "type": "string"
+        },
+        "original_url": {
+          "type": "string"
+        },
+        "source_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "user_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
       },
       "additionalProperties": true
     }

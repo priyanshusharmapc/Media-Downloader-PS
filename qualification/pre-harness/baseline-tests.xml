@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="17"
+	failures="16"
+	disabled="0"
+	skipped="0"
+	hostname="localhost"
+	time="0"
+	timestamp="2026-09-14T17:50:08"
+	>
+	<testcase name="archive-core" classname="archive-core" time="0.103898" status="run">
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+archive-core-tests: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-shape" classname="archive-discovery-shape" time="0.00627729" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-shape: FAIL: non-playlist JSON must not be complete
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-null" classname="archive-discovery-null" time="0.00543139" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-null: FAIL: null entries must prevent removal inference
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-count" classname="archive-discovery-count" time="0.00698548" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-count: FAIL: truncated playlist must be partial
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-error" classname="archive-discovery-error" time="0.00552962" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+discovery-error: FAIL: ignore-errors cannot authorize removals
+</system-out>
+	</testcase>
+	<testcase name="archive-portable-paths" classname="archive-portable-paths" time="0.0103277" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+portable-paths: FAIL: unsafe portable path accepted: C:escape
+</system-out>
+	</testcase>
+	<testcase name="archive-source-traversal" classname="archive-source-traversal" time="0.01322" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+source-traversal: FAIL: unsafe source key must fail
+</system-out>
+	</testcase>
+	<testcase name="archive-state-shape" classname="archive-state-shape" time="0.0112774" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+state-shape: FAIL: wrong JSON root must be an error
+</system-out>
+	</testcase>
+	<testcase name="archive-source-state-corruption" classname="archive-source-state-corruption" time="0.0148738" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+source-state-corruption: FAIL: corrupt sources must block reconciliation
+</system-out>
+	</testcase>
+	<testcase name="archive-snapshot-identity" classname="archive-snapshot-identity" time="0.0128525" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+snapshot-identity: FAIL: cross-source snapshot accepted
+</system-out>
+	</testcase>
+	<testcase name="archive-import-identity" classname="archive-import-identity" time="0.0110885" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-identity: FAIL: conflicting identities accepted
+</system-out>
+	</testcase>
+	<testcase name="archive-import-id-only" classname="archive-import-id-only" time="0.0104511" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-id-only: FAIL: documented youtube_id-only target rejected
+</system-out>
+	</testcase>
+	<testcase name="archive-import-schema" classname="archive-import-schema" time="0.0108008" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+import-schema: FAIL: unsafe package/schema accepted
+</system-out>
+	</testcase>
+	<testcase name="archive-partial-recovery-status" classname="archive-partial-recovery-status" time="0.015649" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+partial-recovery-status: FAIL: audio still missing but recovery cleared
+</system-out>
+	</testcase>
+	<testcase name="archive-nested-redaction" classname="archive-nested-redaction" time="0.0102761" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+nested-redaction: FAIL: nested credential leaked
+</system-out>
+	</testcase>
+	<testcase name="archive-deleted-title" classname="archive-deleted-title" time="0.0144725" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+deleted-title: FAIL: recovery report lost known title
+</system-out>
+	</testcase>
+	<testcase name="archive-linked-package-file" classname="archive-linked-package-file" time="0.010221" status="fail">
+		<failure message="Failed"/>
+		<properties/>
+		<system-out>Detected locale "C" with character encoding "ANSI_X3.4-1968", which is not UTF-8.
+Qt depends on a UTF-8 locale, and has switched to "C.UTF-8" instead.
+If this causes problems, reconfigure your locale. See the locale(1) manual
+for more information.
+linked-package-file: FAIL: symlink escaped package boundary
+</system-out>
+	</testcase>
+</testsuite>

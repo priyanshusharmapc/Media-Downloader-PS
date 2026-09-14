@@ -1,6 +1,6 @@
 # Media Downloader PS Archive Agent Contract
 
-Contract version: 1
+Contract version: 1.1 (package schema remains version 1)
 
 ## Purpose
 
@@ -180,3 +180,23 @@ read ARCHIVE_AGENT.md
 ```
 
 If any operation would require changing existing canonical files directly, stop. The correct integration path is the Recovery Package boundary.
+
+## Transactional submission and recovery safeguards
+
+Use a package ID of 1 to 160 ASCII letters, digits, underscores or hyphens. The direct Pending directory name must equal that ID. An Accepted ID is immutable and cannot be reused. Package paths must not contain traversal, drive letters, alternate data streams, reserved Windows names, symbolic links or junctions. When both target IDs are supplied they must agree. A youtube_id-only target is supported, but must already exist in canonical state.
+
+Prepare the complete package outside Pending, then move the directory into Pending only after all files are closed. Do not edit submitted packages while the application is running. Every contributed representation is staged and verified before any canonical promotion. The durable transaction journal supports restart roll-forward, not manual edits. If the application reports a transaction conflict, preserve the journal and all referenced evidence for diagnosis.
+
+Schema or identity rejection creates a unique Rejected receipt. Media-tool or storage failure before promotion leaves the package Pending for retry. Interrupted promotion retains its journal for recovery on next initialization. Acceptance never overwrites existing canonical media or older Accepted evidence. A video-only recovery still leaves missing audio visible, and vice versa. Acceptance proves the stated technical checks, not that the content matches the historical upload; human identity review remains necessary.
+
+The root contract and packaged schema are regenerated from the installed build. A differing existing contract is preserved in a content-addressed previous-version file before replacement. Keep custom recovery notes separately rather than editing generated contracts.
+
+## Target Windows acceptance command
+
+Run the sealed portable candidate from a fresh extraction and use a separate empty Archive Root:
+
+```powershell
+.\archive-local-harness.ps1 -ArchiveRoot 'C:\ArchiveHarness' -PlaylistUrl '<playlist URL>' -VideoUrl '<video URL>' -ExpectedCommit '<40-character candidate commit>'
+```
+
+The harness checks the package identity and hashes, verifies the requested canonical video and audio, repeats the operation, checks unchanged media hashes, and writes a dated evidence receipt. A source-code build, hosted CI PASS, or this document alone is not a substitute for that target-host result.

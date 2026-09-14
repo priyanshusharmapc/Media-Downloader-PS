@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Linux-c++"
+	tests="18"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname="localhost"
+	time="13"
+	timestamp="2026-09-14T18:10:49"
+	>
+	<testcase name="archive-core" classname="archive-core" time="0.408212" status="run">
+		<properties/>
+		<system-out>archive-core-tests: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-shape" classname="archive-discovery-shape" time="0.0169014" status="run">
+		<properties/>
+		<system-out>discovery-shape: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-null" classname="archive-discovery-null" time="0.0165006" status="run">
+		<properties/>
+		<system-out>discovery-null: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-count" classname="archive-discovery-count" time="0.0163192" status="run">
+		<properties/>
+		<system-out>discovery-count: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-discovery-error" classname="archive-discovery-error" time="0.0160891" status="run">
+		<properties/>
+		<system-out>discovery-error: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-portable-paths" classname="archive-portable-paths" time="0.046361" status="run">
+		<properties/>
+		<system-out>portable-paths: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-source-traversal" classname="archive-source-traversal" time="0.0500075" status="run">
+		<properties/>
+		<system-out>source-traversal: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-state-shape" classname="archive-state-shape" time="0.0502184" status="run">
+		<properties/>
+		<system-out>state-shape: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-source-state-corruption" classname="archive-source-state-corruption" time="0.0596035" status="run">
+		<properties/>
+		<system-out>source-state-corruption: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-snapshot-identity" classname="archive-snapshot-identity" time="0.0483774" status="run">
+		<properties/>
+		<system-out>snapshot-identity: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-import-identity" classname="archive-import-identity" time="0.0525994" status="run">
+		<properties/>
+		<system-out>import-identity: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-import-id-only" classname="archive-import-id-only" time="0.0506981" status="run">
+		<properties/>
+		<system-out>import-id-only: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-import-schema" classname="archive-import-schema" time="0.0492305" status="run">
+		<properties/>
+		<system-out>import-schema: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-partial-recovery-status" classname="archive-partial-recovery-status" time="0.120025" status="run">
+		<properties/>
+		<system-out>partial-recovery-status: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-nested-redaction" classname="archive-nested-redaction" time="0.0567032" status="run">
+		<properties/>
+		<system-out>nested-redaction: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-deleted-title" classname="archive-deleted-title" time="0.0688925" status="run">
+		<properties/>
+		<system-out>deleted-title: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-linked-package-file" classname="archive-linked-package-file" time="0.0552011" status="run">
+		<properties/>
+		<system-out>linked-package-file: PASS
+</system-out>
+	</testcase>
+	<testcase name="archive-integration" classname="archive-integration" time="12.37" status="run">
+		<properties/>
+		<system-out>test_archive_skip_retry_argument_order (__main__.ArchiveIntegration.test_archive_skip_retry_argument_order) ... ok
+test_concurrent_writer_and_old_live_lock_are_rejected (__main__.ArchiveIntegration.test_concurrent_writer_and_old_live_lock_are_rejected) ... ok
+test_corrupt_history_cannot_be_extended_or_replaced (__main__.ArchiveIntegration.test_corrupt_history_cannot_be_extended_or_replaced) ... ok
+test_corrupt_state_is_not_silently_replaced (__main__.ArchiveIntegration.test_corrupt_state_is_not_silently_replaced) ... ok
+test_crashed_writer_lock_is_recovered (__main__.ArchiveIntegration.test_crashed_writer_lock_is_recovered) ... ok
+test_csv_formula_and_playlist_line_injection_are_neutralized (__main__.ArchiveIntegration.test_csv_formula_and_playlist_line_injection_are_neutralized) ... ok
+test_duplicate_playlist_occurrences_survive_removal_and_reappearance (__main__.ArchiveIntegration.test_duplicate_playlist_occurrences_survive_removal_and_reappearance) ... ok
+test_failed_second_representation_is_atomic_and_ret...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+</testsuite>

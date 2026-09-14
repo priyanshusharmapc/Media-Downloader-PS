@@ -62,6 +62,7 @@ struct CanonicalItem
 struct PlaylistItem
 {
     QString itemKey;
+    QString entryKey;
     QString providerId;
     int position = -1;
     QString title;
@@ -176,6 +177,7 @@ public:
     bool savePlaylistItems(const QString& sourceKey,const QVector<PlaylistItem>& items,QString* error = nullptr) const;
     bool savePlaylistMeta(const Source& source,QString* error = nullptr) const;
     bool appendHistory(const QString& sourceKey,const QJsonObject& event,QString* error = nullptr) const;
+    bool writeAllProjections(QString* error = nullptr) const;
     bool writeProjections(const QString& sourceKey,QString* error = nullptr) const;
     bool updateRepresentation(const QString& itemKey,const QString& kind,const Representation& representation,QString* error = nullptr);
     bool updateCanonicalMetadata(const QString& itemKey,const QString& title,const QString& uploader,
@@ -247,7 +249,7 @@ public:
     RecoveryImporter(RuntimeConfig config,Store& store,ActivityLogger& logger);
     ValidationResult validate(const QString& packageDir) const;
     bool ingest(const QString& packageDir,QString* error = nullptr);
-    int ingestPending(QStringList* failures = nullptr);
+    int ingestPending(QStringList* failures = nullptr,const std::function<bool()>& shouldStop = {});
 private:
     bool normalizeVideo(const QString& input,const QString& output,QString* error) const;
     bool normalizeAudio(const QString& input,const QString& output,QString* error) const;
@@ -258,18 +260,24 @@ private:
     MediaVerifier m_verifier;
 };
 
+struct ArchiveLockState;
 class SyncLock
 {
 public:
     explicit SyncLock(const Paths& paths);
+    ~SyncLock();
+    SyncLock(const SyncLock&)=delete;
+    SyncLock& operator=(const SyncLock&)=delete;
     bool tryLock(int timeoutMs = 0);
     void unlock();
     QString errorString() const;
 private:
-    std::unique_ptr<QLockFile> m_lock;
+    Paths m_paths;
+    std::shared_ptr<ArchiveLockState> m_lock;
     QString m_error;
 };
 
+QString videoIdFromUrl(const QString& url);
 QString sourceKeyFromUrl(const QString& url);
 QString availabilityFromEntry(const QJsonObject& entry);
 QString canonicalKey(const QString& providerId,const QString& sourceKey,int position,const QString& title);
