@@ -19,7 +19,7 @@ The hardened code baseline documented here is:
 - Linux job: PASS
 - Windows job: PASS
 
-Documentation-only commits can be newer than the hardened code baseline. For any portable package, `build-identity.json` remains the authority for the exact package commit.
+Documentation-only commits can be newer than the hardened code baseline and can produce newer sealed packages with their own commit identities. For any portable package, `build-identity.json` is the authority for that exact package commit.
 
 ## 2. Qualification philosophy
 
@@ -143,7 +143,7 @@ The `linux` job in `.github/workflows/archive-qt6.yml` runs in a Debian trixie c
 
 It installs a matching Qt6 development toolchain plus Python and FFmpeg, captures source identity, configures and builds the Qt6 project, runs the normal suite with JUnit output, configures a sanitizer build, builds the instrumented Archive targets, runs the sanitizer suite, and uploads the resulting test evidence.
 
-For run `34881209447`, every Linux qualification step completed successfully.
+For hardened run `34881209447`, every Linux qualification step completed successfully.
 
 ## 8. Windows CI qualification
 
@@ -165,7 +165,7 @@ The job performs:
 12. final build-identity sealing and SHA-256 manifest generation;
 13. upload of the portable package and Windows test evidence.
 
-For run `34881209447`, every Windows qualification step completed successfully.
+For hardened run `34881209447`, every Windows qualification step completed successfully.
 
 The Windows integration entry executed all 22 integration methods successfully, including the local-harness positive case and deliberate package-tamper rejection.
 
@@ -181,15 +181,13 @@ Real YouTube acceptance remains a target-host test.
 
 ## 10. Runtime pinning
 
-The qualified Windows package uses pinned runtime downloads whose archives are SHA-256 verified during assembly.
-
-For the documented qualification run, the workflow pinned:
+The qualified Windows package from hardened run `34881209447` used pinned runtime downloads whose archives were SHA-256 verified during assembly:
 
 - yt-dlp `2026.08.19`;
 - Deno `2.9.6`;
 - FFmpeg build `n9.0.1-29-gad500d59cb`.
 
-The portable package also contains `RUNTIME_VERSIONS.txt` so an operator can inspect the exact runtime identities distributed with the candidate.
+The portable package contains `RUNTIME_VERSIONS.txt` so an operator can inspect the exact runtime identities distributed with that candidate.
 
 Do not silently replace one of these executables inside a sealed candidate and continue calling it the qualified package. The local harness is expected to reject changed sealed bytes.
 
@@ -205,7 +203,7 @@ SHA256SUMS.txt
 
 `build-identity.json` binds the portable candidate to repository, commit, workflow run, and qualification state.
 
-A qualified package uses:
+A package ready for target-host acceptance uses:
 
 ```text
 qualification = windows-ci-qualified-for-local-harness
@@ -215,7 +213,7 @@ qualification = windows-ci-qualified-for-local-harness
 
 This prevents a stale binary, mixed extraction, edited harness, replaced runtime, or other package mutation from being mistaken for the exact candidate qualified by CI.
 
-## 12. Qualified run artifacts
+## 12. Hardened baseline run artifacts
 
 GitHub Actions run `34881209447` produced these durable workflow artifacts:
 
@@ -227,6 +225,8 @@ GitHub Actions run `34881209447` produced these durable workflow artifacts:
 | Media-Downloader-PS-Windows-Qt6-33cf3150fb7ccc6aa26f0f2d9454db7701baad05 | `10362997743` | `sha256:186798f595707f3a8d2ecd257ca207e55c6c374f529e532172010e91b10478a1` |
 
 These GitHub artifact digests identify the uploaded ZIP artifacts. The package's own `SHA256SUMS.txt` separately seals the files inside the portable candidate.
+
+A newer docs-only branch build can produce a different artifact digest and package commit even when Archive source code is unchanged. Do not substitute the baseline digest for another package. Inspect that run's artifact metadata and package identity instead.
 
 ## 13. Preserved repository evidence
 
@@ -250,17 +250,23 @@ That audit was frozen before the final strengthened Windows run completed. Its h
 
 Hosted CI is necessary but not sufficient. The target machine has real environmental variables such as network routing, antivirus, filesystem behavior, Windows path handling, local permissions, yt-dlp extractor behavior, and real YouTube responses.
 
-Run the sealed portable package from a fresh extraction against an empty root:
+Run the sealed portable package from a fresh extraction against an empty root. First load the package's own identity:
+
+```powershell
+$identity = Get-Content .\build-identity.json -Raw | ConvertFrom-Json
+$expectedCommit = $identity.commit
+$identity
+```
+
+Confirm that `qualification` is `windows-ci-qualified-for-local-harness`, then run:
 
 ```powershell
 .\archive-local-harness.ps1 `
   -ArchiveRoot 'C:\ArchiveHarness' `
   -PlaylistUrl '<REAL PLAYLIST URL>' `
   -VideoUrl '<REAL VIDEO URL>' `
-  -ExpectedCommit '33cf3150fb7ccc6aa26f0f2d9454db7701baad05'
+  -ExpectedCommit $expectedCommit
 ```
-
-If a later package is used, take the expected commit from its `build-identity.json`.
 
 Do not add `-AllowExistingArchive` to the first acceptance run unless the purpose of the test specifically requires pre-existing state.
 
@@ -300,9 +306,9 @@ That broader uncertainty belongs to live Kilo exploratory testing and later prod
 
 Do not start broad live-harness exploration until all of the following are true:
 
-- the exact source commit is known;
-- Linux CI is green;
-- Windows CI is green;
+- the exact source/package commit is known;
+- Linux CI is green for the package commit;
+- Windows CI is green for the package commit;
 - normal regression/integration tests pass;
 - Linux sanitizer tests pass;
 - the Windows portable package is sealed;
@@ -371,10 +377,10 @@ Tests should leave enough diagnostic context to understand a failure without req
 
 For each candidate that reaches local acceptance, preserve at minimum:
 
-- exact Git commit;
+- exact Git/package commit;
 - CI run ID;
 - CI conclusion for Linux and Windows;
-- portable artifact identity or digest;
+- portable artifact identity and digest for that run;
 - Windows and Linux test evidence artifacts;
 - `build-identity.json`;
 - `SHA256SUMS.txt`;
@@ -385,6 +391,8 @@ This makes qualification reproducible and prevents an older or modified binary f
 
 ## 22. Current conclusion
 
-Commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05` completed the strengthened pre-harness CI qualification successfully on both Linux and Windows. The deterministic hardening, integration, sanitizer, portable packaging, GUI smoke, and packaged runtime gates are green.
+Hardened code baseline `33cf3150fb7ccc6aa26f0f2d9454db7701baad05` completed the strengthened pre-harness CI qualification successfully on both Linux and Windows. The deterministic hardening, integration, sanitizer, portable packaging, GUI smoke, and packaged runtime gates for that baseline are green.
 
-The remaining pre-live requirement is the real target Windows local harness using the sealed candidate and real authorized YouTube inputs. Once that passes and its receipt is preserved, broad Kilo live-harness testing can begin.
+Any newer sealed package must be judged by its own `build-identity.json`, CI run, artifact digest, and local-harness evidence rather than inheriting the older package's identity.
+
+The remaining pre-live requirement for the package selected for deployment is the real target Windows local harness using that exact sealed candidate and real authorized YouTube inputs. Once that passes and its receipt is preserved, broad Kilo live-harness testing can begin.

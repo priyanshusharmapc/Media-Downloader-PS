@@ -6,11 +6,11 @@ The upstream project remains a general-purpose graphical frontend for tools such
 
 ## Archive Mode status
 
-The current code-qualified Archive Mode candidate is commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05` from branch `archive-mode-v1`. GitHub Actions run `34881209447` completed successfully on Linux and Windows. The qualification included the normal regression suite, real-media integration tests, Linux ASan/UBSan execution, Windows portable packaging, packaged preflight, GUI launch smoke, and packaged yt-dlp + FFmpeg + FFprobe runtime smoke.
+The current hardened Archive Mode code baseline is commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`. GitHub Actions run `34881209447` completed successfully on Linux and Windows. The qualification included the normal regression suite, real-media integration tests, Linux ASan/UBSan execution, Windows portable packaging, packaged preflight, GUI launch smoke, and packaged yt-dlp + FFmpeg + FFprobe runtime smoke.
 
 That hosted qualification does not replace target-host acceptance. The next gate is the sealed Windows local harness on the actual Windows/Kilo machine using real YouTube inputs.
 
-Documentation commits may be newer than the code-qualified candidate above. Always use the commit stored in the portable package's `build-identity.json` as the `-ExpectedCommit` value for that package.
+Documentation-only commits and newly rebuilt portable packages can have newer commit identities than the code baseline above. For every portable package, treat its own `build-identity.json` as the authority for `-ExpectedCommit`.
 
 ## Archive Mode documentation
 
@@ -26,14 +26,24 @@ Start here:
 
 ## Archive Mode quick start
 
-For the qualified Windows portable candidate, extract the ZIP into a fresh directory and keep the Archive Root outside the portable package. Use an empty Archive Root for the first target-host qualification.
+For a CI-qualified Windows portable candidate, extract the ZIP into a fresh directory and keep the Archive Root outside the portable package. Use an empty Archive Root for the first target-host qualification.
+
+First read the package commit:
+
+```powershell
+$identity = Get-Content .\build-identity.json -Raw | ConvertFrom-Json
+$expectedCommit = $identity.commit
+$expectedCommit
+```
+
+Then run:
 
 ```powershell
 .\archive-local-harness.ps1 `
   -ArchiveRoot 'C:\ArchiveHarness' `
   -PlaylistUrl '<REAL PLAYLIST URL>' `
   -VideoUrl '<REAL VIDEO URL>' `
-  -ExpectedCommit '33cf3150fb7ccc6aa26f0f2d9454db7701baad05'
+  -ExpectedCommit $expectedCommit
 ```
 
 The harness verifies package identity and sealed files before execution, runs Archive preflight, performs a complete playlist scan, syncs and verifies the exact requested item, repeats the operation, confirms canonical media hashes are unchanged, and writes a dated evidence receipt into the Archive Root.
@@ -82,7 +92,7 @@ cmake --build build --parallel 2
 ctest --test-dir build --output-on-failure
 ```
 
-The application-level Archive integration suite also requires Python 3.11 or newer and real FFmpeg/FFprobe. `ARCHIVE_TEST_FFMPEG` and `ARCHIVE_TEST_FFPROBE` can override the media tool locations.
+The application-level Archive integration suite requires Python 3.11 or newer and real FFmpeg/FFprobe. `ARCHIVE_TEST_FFMPEG` and `ARCHIVE_TEST_FFPROBE` can override the media tool locations.
 
 ## Upstream Media Downloader
 

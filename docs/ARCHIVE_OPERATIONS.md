@@ -6,14 +6,14 @@ This guide is for operators, testers, and developers running Media Downloader PS
 
 For target Windows acceptance, use a portable artifact produced by the Archive Qt6 qualification workflow, not an arbitrary local build and not an older portable ZIP relabeled as current.
 
-For the currently qualified code candidate:
+The hardened code baseline immediately preceding this documentation refresh was:
 
 - commit: `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`
 - workflow run: `34881209447`
 - qualification: Linux PASS, Windows PASS
 - portable artifact digest: `sha256:186798f595707f3a8d2ecd257ca207e55c6c374f529e532172010e91b10478a1`
 
-After extraction, inspect `build-identity.json`. The `commit` field in that file is the expected commit for that exact package.
+Documentation-only commits can trigger newer portable builds with newer commit identities while preserving the same Archive implementation. After extraction, always inspect `build-identity.json`. The `commit` field in that file is the expected commit for that exact package.
 
 Do not mix files from two candidate ZIPs. The local harness rejects extra unsealed files and hash mismatches.
 
@@ -100,17 +100,23 @@ Use it after manual filesystem incidents, antivirus quarantines, restores, or su
 
 ## 7. Run the target Windows local harness
 
-For the first live acceptance run, use a fresh package extraction and empty root:
+For the first live acceptance run, use a fresh package extraction and empty root. Read the exact package identity first:
+
+```powershell
+$identity = Get-Content .\build-identity.json -Raw | ConvertFrom-Json
+$expectedCommit = $identity.commit
+$identity
+```
+
+Confirm that `qualification` is `windows-ci-qualified-for-local-harness`, then run:
 
 ```powershell
 .\archive-local-harness.ps1 `
   -ArchiveRoot 'C:\ArchiveHarness' `
   -PlaylistUrl '<REAL PLAYLIST URL>' `
   -VideoUrl '<REAL VIDEO URL>' `
-  -ExpectedCommit '33cf3150fb7ccc6aa26f0f2d9454db7701baad05'
+  -ExpectedCommit $expectedCommit
 ```
-
-Use the commit from `build-identity.json` if you are running a different qualified package.
 
 The harness refuses to proceed if:
 
@@ -134,7 +140,7 @@ The harness then performs:
 7. equality checks proving the rerun did not change canonical media;
 8. creation of a dated `local-harness-evidence-*.json` receipt in the Archive Root.
 
-A PASS from this script is the target-host acceptance gate for the tested playlist and item.
+A PASS from this script is the target-host acceptance gate for the tested package, playlist, and item.
 
 ## 8. Routine operating cycle
 
@@ -183,7 +189,7 @@ Recommended response:
 
 1. stop all Archive Mode GUI and CLI processes;
 2. preserve the Archive Root exactly as it is;
-3. restart with `archive-cli preflight <root>` or another read/initializing operation;
+3. restart with `archive-cli preflight <root>` or another initializing operation;
 4. allow initialization to recover the journal;
 5. inspect the reported error if recovery refuses a conflict;
 6. copy the journal and relevant state files before any manual intervention.
