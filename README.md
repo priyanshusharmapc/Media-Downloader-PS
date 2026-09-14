@@ -4,13 +4,19 @@ Media Downloader PS is a Qt/C++ fork of Media Downloader with a loss-resistant A
 
 The upstream project remains a general-purpose graphical frontend for tools such as yt-dlp, gallery-dl, you-get, svtplay-dl, aria2c, wget, and related extensions. This fork adds a separate Archive Mode designed for long-lived collections where deleted, private, removed, unavailable, or later-recovered items must remain historically traceable.
 
-## Archive Mode status
+## Archive Mode readiness
 
-The current hardened Archive Mode code baseline is commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`. GitHub Actions run `34881209447` completed successfully on Linux and Windows. The qualification included the normal regression suite, real-media integration tests, Linux ASan/UBSan execution, Windows portable packaging, packaged preflight, GUI launch smoke, and packaged yt-dlp + FFmpeg + FFprobe runtime smoke.
+Do not use hardcoded commit IDs, workflow run IDs, artifact IDs, or package digests from documentation as acceptance evidence.
 
-That hosted qualification does not replace target-host acceptance. The next gate is the sealed Windows local harness on the actual Windows/Kilo machine using real YouTube inputs.
+For any candidate package:
 
-Documentation-only commits and newly rebuilt portable packages can have newer commit identities than the code baseline above. For every portable package, treat its own `build-identity.json` as the authority for `-ExpectedCommit`.
+1. read the package's `build-identity.json`;
+2. confirm the exact package commit has a successful Archive Qt6 qualification run on Linux and Windows;
+3. verify the sealed package with its own `SHA256SUMS.txt`;
+4. run the target Windows local harness with `-ExpectedCommit` set from that package's identity;
+5. preserve the resulting local-harness evidence receipt.
+
+The package itself and the CI run for its exact commit are the current sources of qualification truth.
 
 ## Archive Mode documentation
 
@@ -22,21 +28,20 @@ Start here:
 - [Recovery package workflow](docs/ARCHIVE_RECOVERY.md)
 - [Testing, qualification, and acceptance](docs/ARCHIVE_TESTING.md)
 - [Archive Agent interoperability contract](resources/archive/ARCHIVE_AGENT.md)
-- [Frozen pre-harness audit](docs/archive-pre-harness-audit-2026-09-14.md)
 
 ## Archive Mode quick start
 
 For a CI-qualified Windows portable candidate, extract the ZIP into a fresh directory and keep the Archive Root outside the portable package. Use an empty Archive Root for the first target-host qualification.
 
-First read the package commit:
+Read the package identity:
 
 ```powershell
 $identity = Get-Content .\build-identity.json -Raw | ConvertFrom-Json
 $expectedCommit = $identity.commit
-$expectedCommit
+$identity
 ```
 
-Then run:
+Confirm that `qualification` is `windows-ci-qualified-for-local-harness`, then run:
 
 ```powershell
 .\archive-local-harness.ps1 `
