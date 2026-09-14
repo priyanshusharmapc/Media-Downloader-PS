@@ -193,6 +193,7 @@ public:
     QString ytDlp() const;
     QString ffmpeg() const;
     QString ffprobe() const;
+    QString deno() const;
 private:
     QString find(const QStringList& names,const QStringList& relativeCandidates) const;
     RuntimeConfig m_config;
