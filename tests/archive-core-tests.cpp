@@ -52,6 +52,13 @@ int main(int argc,char** argv)
     check(store.saveSources({source},&error),"save sources: "+error);
     auto round=store.loadSources(&error); check(round.size()==1&&round[0].key==source.key,"source registry round-trip");
 
+    // Parsed observations from a nonzero yt-dlp run are useful evidence, but never a complete snapshot.
+    const QByteArray partialJson=R"({"entries":[{"id":"abc123DEF45","title":"Observed before failure","playlist_index":1,"url":"https://www.youtube.com/watch?v=abc123DEF45","availability":"public"}]})";
+    const auto parsedNonzero=PlaylistDiscovery::parse(source,partialJson,"extractor failed after partial output",1);
+    check(parsedNonzero.items.size()==1,"nonzero discovery retains observed entries");
+    check(!parsedNonzero.complete,"nonzero discovery cannot be complete");
+    check(parsedNonzero.error.contains("removal inference disabled"),"nonzero discovery records removal-safety reason");
+
     Snapshot first; first.sourceKey=source.key; first.complete=true; first.scannedAt="2026-09-14T10:00:00+05:30";
     PlaylistItem a; a.providerId="abc123DEF45"; a.position=1; a.title="Unique edit"; a.url="https://www.youtube.com/watch?v=abc123DEF45"; a.availability="public"; a.itemKey=canonicalKey(a.providerId,source.key,a.position,a.title);
     PlaylistItem b; b.providerId="xyz987QWE65"; b.position=2; b.title="Lost edit"; b.url="https://www.youtube.com/watch?v=xyz987QWE65"; b.availability="public"; b.itemKey=canonicalKey(b.providerId,source.key,b.position,b.title);
