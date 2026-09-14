@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "package_id": "20260914-abc123DEF45-001",
+  "target": {
+    "item_key": "youtube:abc123DEF45",
+    "youtube_id": "abc123DEF45"
+  },
+  "provenance": {
+    "method": "old_local_backup",
+    "recovered_by": "local-harness",
+    "recovered_at": "2026-09-14T12:00:00+05:30",
+    "confidence": "verified",
+    "notes": "Recovered from an old local archive."
+  },
+  "representations": {
+    "video": { "file": "files/recovered-video.mkv" },
+    "audio": { "file": "files/recovered-audio.flac" }
+  },
+  "metadata": {
+    "canonical_title": "Recovered unique edit",
+    "source_title": "Recovered unique edit",
+    "original_url": "https://www.youtube.com/watch?v=abc123DEF45",
+    "user_tags": ["recovered", "edit"]
+  }
+}

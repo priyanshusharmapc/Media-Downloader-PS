@@ -31,20 +31,20 @@ endif()
 option(BUILD_WITH_QT6 "Build with Qt 6" OFF)
 
 if(BUILD_WITH_QT6)
-    find_package(Qt6 COMPONENTS Core Widgets Network REQUIRED )
+    find_package(Qt6 COMPONENTS Core Widgets Network Concurrent REQUIRED )
     message("-- Building With Qt6")
 else()
     find_package(Qt5 COMPONENTS Core QUIET)
     if(Qt5_FOUND)
         message("-- Building With Qt5")
         set(BUILD_WITH_QT6 OFF)
-        find_package(Qt5 COMPONENTS Core Widgets Network REQUIRED)
+        find_package(Qt5 COMPONENTS Core Widgets Network Concurrent REQUIRED)
     else()
         find_package(Qt6 COMPONENTS Core QUIET)
         if(Qt6_FOUND)
             message("-- Building With Qt6")
             set(BUILD_WITH_QT6 ON)
-            find_package(Qt6 COMPONENTS Core Widgets Network REQUIRED)
+            find_package(Qt6 COMPONENTS Core Widgets Network Concurrent REQUIRED)
     else()
         message( FATAL_ERROR "-- Failed to find Qt5 or Qt6")
         endif()
@@ -77,7 +77,8 @@ set(MOC_FILES
     src/configure.h
     src/library.h
     src/playlistdownloader.h
-    src/utils/single_instance.hpp)
+    src/utils/single_instance.hpp
+    src/archive/archivetab.h)
 
 set(SRC
     src/mainwindow.cpp
@@ -102,6 +103,8 @@ set(SRC
     src/engines.cpp
     src/tableWidget.cpp
     src/library.cpp
+    src/archive/archivecore.cpp
+    src/archive/archivetab.cpp
     src/engines/tests.cpp
     src/engines/yt-dlp.cpp
     src/engines/safaribooks.cpp
@@ -118,7 +121,7 @@ set(SRC
     src/engines/deno.cpp
     src/engines/bun.cpp)
 
-set(RESOURCES src/icon.qrc )
+set(RESOURCES src/icon.qrc src/archive/archive.qrc )
 
 if(WIN32)
     set(APP_ICON_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/src/appicon.rc")
@@ -138,24 +141,49 @@ endif()
 
 if(BUILD_WITH_QT6)
     if(WIN32)
-        target_link_libraries(media-downloader Advapi32.lib Dwmapi.lib Iphlpapi.lib Qt6::Widgets Qt6::Core Qt6::Network)
+        target_link_libraries(media-downloader Advapi32.lib Dwmapi.lib Iphlpapi.lib Qt6::Widgets Qt6::Core Qt6::Network Qt6::Concurrent)
     else()
         if(APPLE)
-            target_link_libraries(MediaDownloader Qt6::Widgets Qt6::Core Qt6::Network)
+            target_link_libraries(MediaDownloader Qt6::Widgets Qt6::Core Qt6::Network Qt6::Concurrent)
         else()
-            target_link_libraries(media-downloader Qt6::Widgets Qt6::Core Qt6::Network)
+            target_link_libraries(media-downloader Qt6::Widgets Qt6::Core Qt6::Network Qt6::Concurrent)
         endif()
     endif()
 else()
     if(WIN32)
-        target_link_libraries(media-downloader Advapi32.lib Dwmapi.lib Iphlpapi.lib Qt5::Widgets Qt5::Core Qt5::Network)
+        target_link_libraries(media-downloader Advapi32.lib Dwmapi.lib Iphlpapi.lib Qt5::Widgets Qt5::Core Qt5::Network Qt5::Concurrent)
     else()
         if(APPLE)
-             target_link_libraries(MediaDownloader Qt5::Widgets Qt5::Core Qt5::Network)
+             target_link_libraries(MediaDownloader Qt5::Widgets Qt5::Core Qt5::Network Qt5::Concurrent)
         else()
-            target_link_libraries(media-downloader Qt5::Widgets Qt5::Core Qt5::Network)
+            target_link_libraries(media-downloader Qt5::Widgets Qt5::Core Qt5::Network Qt5::Concurrent)
         endif()
     endif()
+endif()
+
+include(CTest)
+
+add_executable(archive-cli
+    src/archive/archivecli.cpp
+    src/archive/archivecore.cpp)
+
+if(BUILD_WITH_QT6)
+    target_link_libraries(archive-cli Qt6::Core)
+else()
+    target_link_libraries(archive-cli Qt5::Core)
+endif()
+
+if(BUILD_TESTING)
+    add_executable(archive-core-tests
+        tests/archive-core-tests.cpp
+        src/archive/archivecore.cpp
+        src/archive/archive.qrc)
+    if(BUILD_WITH_QT6)
+        target_link_libraries(archive-core-tests Qt6::Core)
+    else()
+        target_link_libraries(archive-core-tests Qt5::Core)
+    endif()
+    add_test(NAME archive-core COMMAND archive-core-tests)
 endif()
 
 if(APPLE)

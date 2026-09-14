@@ -28,6 +28,7 @@
 #include "context.hpp"
 #include "library.h"
 #include "networkAccess.h"
+#include "archive/archivetab.h"
 
 #include <QClipboard>
 
@@ -60,6 +61,10 @@ public:
 	batchdownloader& batchDownloader()
 	{
 		return m_batchdownloader ;
+	}
+	ArchiveTab& archiveTab()
+	{
+		return m_archive ;
 	}
 	playlistdownloader& playlistDownloader()
 	{
@@ -98,6 +103,7 @@ private:
 	batchdownloader m_batchdownloader ;
 	playlistdownloader m_playlistdownloader ;
 	library m_library ;
+	ArchiveTab m_archive ;
 } ;
 
 #endif

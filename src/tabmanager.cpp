@@ -40,7 +40,8 @@ tabManager::tabManager( settings& s,
 	m_basicdownloader( m_ctx ),
 	m_batchdownloader( m_ctx ),
 	m_playlistdownloader( m_ctx ),
-	m_library( m_ctx )
+	m_library( m_ctx ),
+	m_archive( m_ctx )
 {
 	t.setContext( m_ctx ) ;
 
@@ -94,6 +95,7 @@ void tabManager::initDone()
 	m_batchdownloader.init_done() ;
 	m_playlistdownloader.init_done() ;
 	m_library.init_done() ;
+	m_archive.init_done() ;
 
 	utility::initDone() ;
 
@@ -115,6 +117,7 @@ void tabManager::initDone()
 		case 3 : m_library.tabEntered() ; break ;
 		case 4 : m_configure.tabEntered() ; break ;
 		case 5 : m_about.tabEntered() ; break ;
+		case 6 : m_archive.tabEntered() ; break ;
 	}
 
 	QObject::connect( m.tabWidget,&QTabWidget::currentChanged,[ this ]( int index ){
@@ -127,6 +130,7 @@ void tabManager::initDone()
 			case 3 : m_library.tabEntered() ; break ;
 			case 4 : m_configure.tabEntered() ; break ;
 			case 5 : m_about.tabEntered() ; break ;
+			case 6 : m_archive.tabEntered() ; break ;
 		}
 
 		if( m_currentTab != index ){
@@ -139,6 +143,7 @@ void tabManager::initDone()
 				case 3 : m_library.tabExited() ; break ;
 				case 4 : m_configure.tabExited() ; break ;
 				case 5 : m_about.tabExited() ; break ;
+				case 6 : m_archive.tabExited() ; break ;
 			}
 
 			m_currentTab = index ;
@@ -311,6 +316,7 @@ tabManager& tabManager::enableAll()
 	m_batchdownloader.enableAll() ;
 	m_playlistdownloader.enableAll() ;
 	m_library.enableAll() ;
+	m_archive.enableAll() ;
 
 	m_uiEnabled = true ;
 
@@ -332,6 +338,7 @@ tabManager& tabManager::disableAll()
 	m_batchdownloader.disableAll() ;
 	m_playlistdownloader.disableAll() ;
 	m_library.disableAll() ;
+	m_archive.disableAll() ;
 
 	m_uiEnabled = false ;
 
@@ -346,6 +353,7 @@ tabManager& tabManager::resetMenu()
 	m_batchdownloader.resetMenu() ;
 	m_playlistdownloader.resetMenu() ;
 	m_library.resetMenu() ;
+	m_archive.resetMenu() ;
 
 	return *this ;
 }
@@ -358,6 +366,7 @@ tabManager& tabManager::reTranslateUi()
 	m_playlistdownloader.retranslateUi() ;
 	m_library.retranslateUi() ;
 	m_batchdownloader.retranslateUi() ;
+	m_archive.retranslateUi() ;
 
 	return *this ;
 }
@@ -370,6 +379,7 @@ tabManager& tabManager::exiting()
 	m_batchdownloader.exiting() ;
 	m_playlistdownloader.exiting() ;
 	m_library.exiting() ;
+	m_archive.exiting() ;
 
 	return *this ;
 }
@@ -384,6 +394,7 @@ void tabManager::keyPressed( utility::mainWindowKeyCombo m )
 		case 3 : m_library.keyPressed( m )         ; break ;
 		case 4 : m_configure.keyPressed( m )       ; break ;
 		case 5 : m_about.keyPressed( m )           ; break ;
+		case 6 : m_archive.keyPressed( m )         ; break ;
 	}
 }
 
@@ -395,4 +406,5 @@ void tabManager::textAlignmentChanged( Qt::LayoutDirection m )
 	m_batchdownloader.textAlignmentChanged( m ) ;
 	m_playlistdownloader.textAlignmentChanged( m ) ;
 	m_library.textAlignmentChanged( m ) ;
+	m_archive.textAlignmentChanged( m ) ;
 }

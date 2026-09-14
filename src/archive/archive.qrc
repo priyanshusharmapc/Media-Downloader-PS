@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="/archive">
+    <file alias="ARCHIVE_AGENT.md">../../resources/archive/ARCHIVE_AGENT.md</file>
+    <file alias="recovery-package.schema.json">../../resources/archive/recovery-package.schema.json</file>
+    <file alias="recovery-package.example.json">../../resources/archive/recovery-package.example.json</file>
+  </qresource>
+</RCC>

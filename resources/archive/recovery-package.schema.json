@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://media-downloader-ps.local/schemas/recovery-package-v1.json",
+  "title": "Media Downloader PS Recovery Package",
+  "type": "object",
+  "required": ["schema_version", "package_id", "target", "provenance"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "package_id": { "type": "string", "minLength": 1, "maxLength": 160 },
+    "target": {
+      "type": "object",
+      "properties": {
+        "item_key": { "type": "string" },
+        "youtube_id": { "type": "string" }
+      },
+      "anyOf": [
+        { "required": ["item_key"] },
+        { "required": ["youtube_id"] }
+      ],
+      "additionalProperties": true
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["method"],
+      "properties": {
+        "method": { "type": "string", "minLength": 1 },
+        "recovered_by": { "type": "string" },
+        "recovered_at": { "type": "string" },
+        "source_url": { "type": "string" },
+        "confidence": { "enum": ["low", "medium", "high", "verified"] },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "representations": {
+      "type": "object",
+      "properties": {
+        "video": {
+          "type": "object",
+          "required": ["file"],
+          "properties": { "file": { "type": "string", "minLength": 1 } },
+          "additionalProperties": true
+        },
+        "audio": {
+          "type": "object",
+          "required": ["file"],
+          "properties": { "file": { "type": "string", "minLength": 1 } },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "canonical_title": { "type": "string" },
+        "source_title": { "type": "string" },
+        "original_url": { "type": "string" },
+        "source_tags": { "type": "array", "items": { "type": "string" } },
+        "user_tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
