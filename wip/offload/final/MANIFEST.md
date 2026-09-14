@@ -57,15 +57,20 @@ The patch contains exactly the local implementation delta for:
 - `src/tabmanager.h`
 - `tests/archive-core-tests.cpp`
 
-## Verification evidence payload
+## Verification evidence
 
-`wip/offload/final/evidence10-00.b64` reconstructs `evidence.tar.gz`.
+Raw local evidence is preserved directly under `wip/offload/final/evidence/`:
 
-Expected SHA-256:
+- `LOCAL-STATE-MANIFEST.txt`
+- `configure.log`
+- `build.log`
+- `LastTest.log`
+- `gui-smoke.err`
+- `local-build-binary-sha256.txt`
 
-`97c3d4483ff4ee444c9bef13c5d4bc097065773005defeb2d9ac7734a8400947`
+`gui-smoke.out` was empty locally and therefore carries no additional information.
 
-The evidence archive contains local configure/build logs, GUI smoke stdout/stderr, CTest `LastTest.log`, executable SHA-256 evidence, and the local offload manifest. Reproducible build directories, Qt packages, and toolchain caches are deliberately not committed.
+A previous attempt to preserve this evidence as a single base64 tar payload was discarded after validation failed. The raw evidence files above are the authoritative evidence copy.
 
 ## Known local qualification state at offload
 
@@ -87,7 +92,7 @@ The local work is NOT a final release qualification. Windows feature CI, portabl
 
 ## Next safe action
 
-1. Verify all final chunks using the final-offload verification workflow or the commands above.
+1. Verify all final chunks using the `Archive Mode final offload verify` workflow or the commands above.
 2. Restore a fresh checkout at `bad82c16508cdf7ec5daffb9bc92c90271a008f7`.
 3. Reconstruct and apply `archive-mode-local-complete.patch`.
 4. Build `media-downloader`, `archive-cli`, and `archive-core-tests` and rerun `ctest --output-on-failure`.
