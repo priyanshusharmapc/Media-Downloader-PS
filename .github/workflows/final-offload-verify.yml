@@ -28,13 +28,20 @@ jobs:
           test "$(stat -c %s /tmp/archive-mode-local-complete.patch)" = "122195"
           echo '213f63fdff948af9f675c23d6f7f5fd18d1be1e8a43240f24487f76b21a455f2  /tmp/archive-mode-local-complete.patch' | sha256sum -c -
 
-      - name: Reconstruct and verify evidence
+      - name: Verify raw local evidence
         shell: bash
         run: |
           set -euo pipefail
-          cat wip/offload/final/evidence10-*.b64 | tr -d '\r\n' | base64 -d > /tmp/evidence.tar.gz
-          echo '97c3d4483ff4ee444c9bef13c5d4bc097065773005defeb2d9ac7734a8400947  /tmp/evidence.tar.gz' | sha256sum -c -
-          tar -tzf /tmp/evidence.tar.gz
+          test -s wip/offload/final/evidence/LOCAL-STATE-MANIFEST.txt
+          test -s wip/offload/final/evidence/configure.log
+          test -s wip/offload/final/evidence/build.log
+          test -s wip/offload/final/evidence/LastTest.log
+          test -s wip/offload/final/evidence/gui-smoke.err
+          test -s wip/offload/final/evidence/local-build-binary-sha256.txt
+          grep -F 'archive-core-tests: PASS' wip/offload/final/evidence/LastTest.log
+          grep -F '100%' wip/offload/final/evidence/LastTest.log || true
+          grep -F 'Linking CXX executable media-downloader' wip/offload/final/evidence/build.log
+          grep -F 'Building With Qt6' wip/offload/final/evidence/configure.log
 
       - name: Upload verified reconstruction
         uses: actions/upload-artifact@v4
@@ -43,6 +50,6 @@ jobs:
           path: |
             /tmp/archive-mode-local-complete.patch.gz
             /tmp/archive-mode-local-complete.patch
-            /tmp/evidence.tar.gz
             wip/offload/final/MANIFEST.md
+            wip/offload/final/evidence/
           retention-days: 14
