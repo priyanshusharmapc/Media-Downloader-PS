@@ -24,13 +24,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat wip/reconstruction/chunk-00.txt \
-              wip/reconstruction/chunk-01.txt \
-              wip/reconstruction/chunk-02.txt \
-              wip/reconstruction/chunk-03.txt \
-              wip/reconstruction/chunk-04.txt \
-              wip/reconstruction/chunk-05.txt \
-              wip/reconstruction/chunk-06.txt > /tmp/archive-mode.patch.gz.b64
+          cat wip/reconstruction/chunk-00.txt wip/reconstruction/chunk-01.txt wip/reconstruction/chunk-02.txt wip/reconstruction/chunk-03.txt wip/reconstruction/chunk-04.txt wip/reconstruction/chunk-05.txt wip/reconstruction/chunk-06.txt > /tmp/archive-mode.patch.gz.b64
           echo '4b58d2fbf03cd5de94ff60baa3937175ff948f8a1d156540f062d1ec07c0d3b6  /tmp/archive-mode.patch.gz.b64' | sha256sum -c -
           base64 -d /tmp/archive-mode.patch.gz.b64 > /tmp/archive-mode.patch.gz
           echo 'e500c253819347497174627574599e642716cff9ea8b2b32c8e0201e5976dd7a  /tmp/archive-mode.patch.gz' | sha256sum -c -
@@ -45,34 +39,9 @@ jobs:
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            CMakeLists.txt \
-            src/tabmanager.h \
-            src/tabmanager.cpp \
-            src/archive/archivecore.h \
-            src/archive/archivecore.cpp \
-            src/archive/archivetab.h \
-            src/archive/archivetab.cpp \
-            src/archive/archivecli.cpp \
-            src/archive/archive.qrc \
-            tests/archive-core-tests.cpp \
-            resources/archive/ARCHIVE_AGENT.md \
-            resources/archive/recovery-package.schema.json \
-            resources/archive/recovery-package.example.json
-          expected='CMakeLists.txt
-resources/archive/ARCHIVE_AGENT.md
-resources/archive/recovery-package.example.json
-resources/archive/recovery-package.schema.json
-src/archive/archive.qrc
-src/archive/archivecli.cpp
-src/archive/archivecore.cpp
-src/archive/archivecore.h
-src/archive/archivetab.cpp
-src/archive/archivetab.h
-src/tabmanager.cpp
-src/tabmanager.h
-tests/archive-core-tests.cpp'
-          actual="$(git diff --cached --name-only | sort)"
+          git add CMakeLists.txt src/tabmanager.h src/tabmanager.cpp src/archive/archivecore.h src/archive/archivecore.cpp src/archive/archivetab.h src/archive/archivetab.cpp src/archive/archivecli.cpp src/archive/archive.qrc tests/archive-core-tests.cpp resources/archive/ARCHIVE_AGENT.md resources/archive/recovery-package.schema.json resources/archive/recovery-package.example.json
+          actual="$(git diff --cached --name-only | sort | tr '\n' ' ' | sed 's/ $//')"
+          expected='CMakeLists.txt resources/archive/ARCHIVE_AGENT.md resources/archive/recovery-package.example.json resources/archive/recovery-package.schema.json src/archive/archive.qrc src/archive/archivecli.cpp src/archive/archivecore.cpp src/archive/archivecore.h src/archive/archivetab.cpp src/archive/archivetab.h src/tabmanager.cpp src/tabmanager.h tests/archive-core-tests.cpp'
           test "$actual" = "$expected"
           git commit -m 'feat: implement Archive Mode v1 reconstruction'
           git push origin HEAD:archive-mode-v1
