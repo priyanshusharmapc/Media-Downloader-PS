@@ -225,11 +225,17 @@ QStringList sortedDirs(const QString& path)
 bool copyResource(const QString& resource,const QString& destination,QString* error)
 {
     QFile in(resource);
-    if(!in.open(QIODevice::ReadOnly)){
-        if(error) *error=QString("Cannot read embedded resource %1").arg(resource);
-        return false;
-    }
-    return atomicWrite(destination,in.readAll(),error);
+    if(in.open(QIODevice::ReadOnly)) return atomicWrite(destination,in.readAll(),error);
+
+    QString relative=resource;
+    const QString prefix=":/archive/";
+    if(relative.startsWith(prefix)) relative=relative.mid(prefix.size());
+    const auto fallback=QDir(QCoreApplication::applicationDirPath()).filePath("archive-resources/"+relative);
+    QFile external(fallback);
+    if(external.open(QIODevice::ReadOnly)) return atomicWrite(destination,external.readAll(),error);
+
+    if(error) *error=QString("Cannot read Archive resource %1 or packaged fallback %2").arg(resource,fallback);
+    return false;
 }
 
 ProcessResult runProcess(const QString& program,const QStringList& args,const QString& cwd,int timeoutMs)
@@ -274,6 +280,28 @@ QString sourceFolderKey(QString key)
     key.replace(QRegularExpression("[^A-Za-z0-9._-]"),"_");
     if(key.isEmpty()) key="unknown";
     return key;
+}
+
+void appendYtRuntimeArgs(QStringList& args,const ToolResolver& tools)
+{
+    const auto ffmpeg=tools.ffmpeg();
+    if(!ffmpeg.isEmpty()) args << "--ffmpeg-location" << QFileInfo(ffmpeg).absolutePath();
+    const auto deno=tools.deno();
+    if(!deno.isEmpty()) args << "--js-runtimes" << ("deno:"+deno);
+}
+
+QStringList withoutDownloadArchive(QStringList args)
+{
+    for(int i=0;i<args.size();++i){
+        if(args.at(i)=="--download-archive"){
+            args.removeAt(i);
+            if(i<args.size()) args.removeAt(i);
+            break;
+        }
+    }
+    const int urlIndex=args.isEmpty()?0:args.size()-1;
+    args.insert(urlIndex,"--no-download-archive");
+    return args;
 }
 }
 
@@ -704,6 +732,14 @@ QString ToolResolver::ffprobe() const
     return find({"ffprobe"},{"3rdParty/ffmpeg/bin/ffprobe","local/bin/ffprobe","bin/ffprobe","ffprobe"});
 #endif
 }
+QString ToolResolver::deno() const
+{
+#ifdef Q_OS_WIN
+    return find({"deno.exe","deno"},{"local/bin/deno.exe","bin/deno.exe","deno.exe"});
+#else
+    return find({"deno"},{"local/bin/deno","bin/deno","deno"});
+#endif
+}
 
 QString sourceKeyFromUrl(const QString& text)
 {
@@ -755,7 +791,9 @@ Snapshot PlaylistDiscovery::discover(const Source& source)
     ToolResolver tools(m_config);
     const auto exe=tools.ytDlp();
     m_logger.event("INFO","discovery","scan_started",{{"source_key",source.key},{"url",source.url}});
-    const QStringList args={"--ignore-config","--flat-playlist","--dump-single-json","--skip-download","--ignore-errors",source.url};
+    QStringList args={"--ignore-config","--flat-playlist","--dump-single-json","--skip-download","--ignore-errors"};
+    appendYtRuntimeArgs(args,tools);
+    args << source.url;
     const auto r=runProcess(exe,args,m_config.archiveRoot,300000);
     s=parse(source,r.standardOutput.toUtf8(),r.standardError,r.exitCode);
     s.scannedAt=nowIso();
@@ -795,9 +833,9 @@ Snapshot PlaylistDiscovery::parse(const Source& source,const QByteArray& json,co
         s.items.append(p);
     }
     const bool transient=isTransientText(stderrText);
-    s.complete=!transient;
+    s.complete=!transient && exitCode==0;
     if(transient) s.error="Transient discovery failure detected; removal inference disabled";
-    else if(exitCode!=0 && entries.isEmpty()){ s.complete=false; s.error=QString("yt-dlp exit %1").arg(exitCode); }
+    else if(exitCode!=0) s.error=QString("yt-dlp exit %1; partial observations retained but removal inference disabled").arg(exitCode);
     return s;
 }
 
@@ -864,9 +902,16 @@ bool MediaExecutor::downloadVideo(const CanonicalItem& item,QString* error)
     Representation running; running.state="running"; running.origin="automatic_download";
     m_store.updateRepresentation(item.key,"video",running,nullptr);
     m_logger.event("INFO","download","video_started",{{"item_key",item.key}});
+    const auto fail=[&](const QString& message,const QString& path=QString()){
+        Representation failed=running; failed.state="failed"; failed.path=path; failed.error=message;
+        m_store.updateRepresentation(item.key,"video",failed,nullptr);
+        if(error) *error=message;
+        m_logger.event("ERROR","download","video_failed",{{"item_key",item.key},{"error",message}});
+        return false;
+    };
     const QString url=item.originalUrl.isEmpty()?"https://www.youtube.com/watch?v="+item.providerId:item.originalUrl;
     const QString output="Video/%(title).120s [%(artist|UNKNOWN)s] [%(height)sp %(duration)ss %(upload_date>%y%m%d|UNKNOWN)s] [%(id)s].%(ext)s";
-    const QStringList args={
+    QStringList args={
         "--ignore-config","--no-playlist","--output-na-placeholder","NA",
         "-f","bv[height<=1080][vcodec^=avc]+ba[ext=m4a]/bv[height<=1080][vcodec^=avc]+ba/bv[height<=1080]+ba/b[height<=1080]",
         "--paths","temp:Temp","--merge-output-format","mp4","-o",output,
@@ -878,16 +923,19 @@ bool MediaExecutor::downloadVideo(const CanonicalItem& item,QString* error)
         "--write-info-json","--write-description","--write-thumbnail","--extractor-args","youtube:skip=translated_subs",
         "--write-subs","--write-auto-subs","--sub-langs","en.*","--sleep-subtitles","1","--embed-subs",
         "--parse-metadata","%(artist|UNKNOWN)s:%(meta_artist)s",
-        "--print-to-file","after_move:%(.{id,title,artist,meta_artist,uploader,upload_date,duration,ext,webpage_url,filepath})j","State/video-catalog.jsonl",
-        url};
-    const auto r=run(m_tools.ytDlp(),args,"video-download");
+        "--print-to-file","after_move:%(.{id,title,artist,meta_artist,uploader,upload_date,duration,ext,webpage_url,filepath})j","State/video-catalog.jsonl"};
+    appendYtRuntimeArgs(args,m_tools);
+    args << url;
+    auto r=run(m_tools.ytDlp(),args,"video-download");
     QString rel=findExistingById("Video",item.providerId,{"mp4","mkv","webm"});
-    if(!r.ok && rel.isEmpty()){
-        Representation fail=running; fail.state="failed"; fail.error=r.error+" "+r.standardError.left(600);
-        m_store.updateRepresentation(item.key,"video",fail,nullptr); if(error)*error=fail.error;
-        m_logger.event("ERROR","download","video_failed",{{"item_key",item.key},{"error",fail.error}}); return false;
+    if(r.ok && rel.isEmpty()){
+        m_logger.event("WARNING","download","video_archive_retry",{{"item_key",item.key}});
+        const auto retryArgs=withoutDownloadArchive(args);
+        r=run(m_tools.ytDlp(),retryArgs,"video-download-retry-without-archive");
+        rel=findExistingById("Video",item.providerId,{"mp4","mkv","webm"});
     }
-    if(rel.isEmpty()){if(error)*error="Downloaded video could not be located";return false;}
+    if(!r.ok && rel.isEmpty()) return fail(r.error+" "+r.standardError.left(600));
+    if(rel.isEmpty()) return fail("Downloaded video could not be located");
     auto verify=m_verifier.verifyVideo(rel);
     if(!verify.ok){
         const auto input=Paths(m_config.archiveRoot).absoluteFromRelative(rel);
@@ -895,17 +943,12 @@ bool MediaExecutor::downloadVideo(const CanonicalItem& item,QString* error)
         const QStringList fargs={"-y","-i",input,"-map","0:v:0","-map","0:a:0?","-map","0:s?","-map_metadata","0","-map_chapters","0",
                                  "-c:v","libx264","-preset","medium","-crf","18","-pix_fmt","yuv420p","-c:a","aac","-b:a","192k","-c:s","mov_text",tmp};
         const auto tr=run(m_tools.ffmpeg(),fargs,"video-normalization");
-        if(!tr.ok){if(error)*error="Conditional video normalization failed: "+tr.standardError.left(700);return false;}
+        if(!tr.ok) return fail("Conditional video normalization failed: "+tr.standardError.left(700),rel);
         QFile::remove(input);
-        if(!QFile::rename(tmp,input)){if(error)*error="Unable to replace video with normalized output";return false;}
+        if(!QFile::rename(tmp,input)) return fail("Unable to replace video with normalized output",rel);
         verify=m_verifier.verifyVideo(rel);
     }
-    if(!verify.ok){
-        const QString msg="Video verification failed: "+verify.errors.join("; ");
-        Representation fail=running; fail.state="failed"; fail.path=rel; fail.error=msg; m_store.updateRepresentation(item.key,"video",fail,nullptr);
-        if(error) *error=msg;
-        return false;
-    }
+    if(!verify.ok) return fail("Video verification failed: "+verify.errors.join("; "),rel);
     Representation done; done.state="complete"; done.path=rel; done.origin="automatic_download"; done.verifiedAt=nowIso();
     m_store.updateRepresentation(item.key,"video",done,nullptr);
     m_logger.event("INFO","verification","video_complete",{{"item_key",item.key},{"path",rel}});
@@ -915,29 +958,39 @@ bool MediaExecutor::downloadVideo(const CanonicalItem& item,QString* error)
 bool MediaExecutor::downloadAudio(const CanonicalItem& item,QString* error)
 {
     if(item.providerId.isEmpty()){if(error)*error="No provider ID";return false;}
-    Representation running; running.state="running"; running.origin="automatic_download"; m_store.updateRepresentation(item.key,"audio",running,nullptr);
+    Representation running; running.state="running"; running.origin="automatic_download";
+    m_store.updateRepresentation(item.key,"audio",running,nullptr);
     m_logger.event("INFO","download","audio_started",{{"item_key",item.key}});
+    const auto fail=[&](const QString& message,const QString& path=QString()){
+        Representation failed=running; failed.state="failed"; failed.path=path; failed.error=message;
+        m_store.updateRepresentation(item.key,"audio",failed,nullptr);
+        if(error) *error=message;
+        m_logger.event("ERROR","download","audio_failed",{{"item_key",item.key},{"error",message}});
+        return false;
+    };
     const QString url=item.originalUrl.isEmpty()?"https://www.youtube.com/watch?v="+item.providerId:item.originalUrl;
-    const QStringList args={"--ignore-config","--no-playlist","--output-na-placeholder","NA","-f","ba[ext=m4a]/ba","--paths","temp:Temp",
+    QStringList args={"--ignore-config","--no-playlist","--output-na-placeholder","NA","-f","ba[ext=m4a]/ba","--paths","temp:Temp",
         "-o","Audio/%(title).120s [%(artist|UNKNOWN)s] [m4a %(duration)ss %(upload_date>%y%m%d|UNKNOWN)s] [%(id)s].%(ext)s",
         "--download-archive","State/audio-archive.txt","--windows-filenames","-x","--audio-format","m4a","--audio-quality","192K","--no-keep-video",
         "--embed-metadata","--embed-thumbnail","--embed-chapters","--parse-metadata","%(artist|UNKNOWN)s:%(meta_artist)s",
-        "--print-to-file","after_move:%(.{id,title,artist,meta_artist,uploader,upload_date,duration,ext,webpage_url,filepath})j","State/audio-catalog.jsonl",url};
-    const auto r=run(m_tools.ytDlp(),args,"audio-download");
+        "--print-to-file","after_move:%(.{id,title,artist,meta_artist,uploader,upload_date,duration,ext,webpage_url,filepath})j","State/audio-catalog.jsonl"};
+    appendYtRuntimeArgs(args,m_tools);
+    args << url;
+    auto r=run(m_tools.ytDlp(),args,"audio-download");
     QString rel=findExistingById("Audio",item.providerId,{"m4a","mp4"});
-    if(!r.ok && rel.isEmpty()){
-        Representation fail=running; fail.state="failed"; fail.error=r.error+" "+r.standardError.left(600); m_store.updateRepresentation(item.key,"audio",fail,nullptr);
-        if(error) *error=fail.error;
-        return false;
+    if(r.ok && rel.isEmpty()){
+        m_logger.event("WARNING","download","audio_archive_retry",{{"item_key",item.key}});
+        const auto retryArgs=withoutDownloadArchive(args);
+        r=run(m_tools.ytDlp(),retryArgs,"audio-download-retry-without-archive");
+        rel=findExistingById("Audio",item.providerId,{"m4a","mp4"});
     }
-    if(rel.isEmpty()){if(error)*error="Downloaded audio could not be located";return false;}
+    if(!r.ok && rel.isEmpty()) return fail(r.error+" "+r.standardError.left(600));
+    if(rel.isEmpty()) return fail("Downloaded audio could not be located");
     const auto verify=m_verifier.verifyAudio(rel);
-    if(!verify.ok){
-        const QString msg="Audio verification failed: "+verify.errors.join("; "); Representation fail=running; fail.state="failed"; fail.path=rel; fail.error=msg;
-        m_store.updateRepresentation(item.key,"audio",fail,nullptr); if(error)*error=msg; return false;
-    }
+    if(!verify.ok) return fail("Audio verification failed: "+verify.errors.join("; "),rel);
     Representation done; done.state="complete"; done.path=rel; done.origin="automatic_download"; done.verifiedAt=nowIso();
-    m_store.updateRepresentation(item.key,"audio",done,nullptr); m_logger.event("INFO","verification","audio_complete",{{"item_key",item.key},{"path",rel}});
+    m_store.updateRepresentation(item.key,"audio",done,nullptr);
+    m_logger.event("INFO","verification","audio_complete",{{"item_key",item.key},{"path",rel}});
     return true;
 }
 
