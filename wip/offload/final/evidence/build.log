@@ -1,0 +1,5 @@
+[1/5] Building CXX object CMakeFiles/archive-core-tests.dir/src/archive/archivecore.cpp.o
+[2/5] Building CXX object CMakeFiles/archive-cli.dir/src/archive/archivecore.cpp.o
+[3/5] Linking CXX executable archive-cli
+[4/5] Linking CXX executable archive-core-tests
+[5/5] Linking CXX executable media-downloader
