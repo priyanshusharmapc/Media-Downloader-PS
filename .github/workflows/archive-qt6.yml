@@ -175,15 +175,32 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
           $root = Join-Path $env:RUNNER_TEMP 'archive-playlist-live-root'
-          & "$out/archive-cli.exe" scan $root 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc' 'yt-dlp official example playlist'
-          if ($LASTEXITCODE -ne 0) { throw "Live playlist scan failed with exit $LASTEXITCODE" }
+          $scan = & "$out/archive-cli.exe" scan $root 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re' 'yt-dlp documented example playlist' 2>&1
+          $exit = $LASTEXITCODE
+          $scan | ForEach-Object { Write-Host $_ }
+          if ($exit -ne 0) { throw "Live playlist scan failed with exit $exit" }
+          $observedLine = $scan | Where-Object { $_ -match '^observed=([0-9]+)$' } | Select-Object -First 1
+          if (!$observedLine) { throw 'Live playlist scan did not report an observed count' }
+          $observed = [int](($observedLine -split '=')[1])
+          if ($observed -lt 1) { throw 'Live playlist scan completed but observed zero items' }
       - name: Real video and audio Archive smoke
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
           $root = Join-Path $env:RUNNER_TEMP 'archive-media-live-root'
-          & "$out/archive-cli.exe" sync-item $root 'https://www.youtube.com/watch?v=BaW_jenozKc'
+          $candidates = @(
+            'https://www.youtube.com/watch?v=ptd1NN40vMw',
+            'https://www.youtube.com/watch?v=YE7VzlLtp-4'
+          )
+          $selected = $null
+          foreach ($candidate in $candidates) {
+            & "$out/bin/yt-dlp.exe" --ignore-config --no-playlist --simulate --js-runtimes "deno:$out/bin/deno.exe" --ffmpeg-location "$out/3rdParty/ffmpeg/bin" $candidate
+            if ($LASTEXITCODE -eq 0) { $selected = $candidate; break }
+          }
+          if (!$selected) { throw 'No documented live media smoke candidate is currently playable' }
+          Write-Host "Selected live Archive smoke URL: $selected"
+          & "$out/archive-cli.exe" sync-item $root $selected
           if ($LASTEXITCODE -ne 0) { throw "Live Archive media sync failed with exit $LASTEXITCODE" }
           $video = Get-ChildItem (Join-Path $root 'Video') -File -Recurse | Select-Object -First 1
           $audio = Get-ChildItem (Join-Path $root 'Audio') -File -Recurse | Select-Object -First 1
