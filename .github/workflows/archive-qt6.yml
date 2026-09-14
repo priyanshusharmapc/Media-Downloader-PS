@@ -2,7 +2,7 @@ name: Archive Qt6 qualification
 
 on:
   push:
-    branches: [main, archive-mode-v1, 'ci/**']
+    branches: [main, archive-mode-v1, archive-mode-v1-qualification-wip, 'ci/**']
   pull_request:
   workflow_dispatch:
 
@@ -61,7 +61,7 @@ jobs:
 
   windows:
     runs-on: windows-2022
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Install Qt6 and matching MinGW
@@ -89,21 +89,116 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: ctest --test-dir build --output-on-failure
-      - name: Assemble portable candidate
+      - name: Assemble self-contained portable candidate
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
           New-Item -ItemType Directory -Force "$out/local" | Out-Null
+          New-Item -ItemType Directory -Force "$out/bin" | Out-Null
+          New-Item -ItemType Directory -Force "$out/3rdParty/ffmpeg/bin" | Out-Null
           Copy-Item build/media-downloader.exe $out
+          Copy-Item build/archive-cli.exe $out
           Copy-Item LICENSE.txt $out
           Copy-Item translations $out -Recurse
           & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --compiler-runtime "$out/media-downloader.exe"
-          if ($LASTEXITCODE -ne 0) { throw 'windeployqt failed' }
+          if ($LASTEXITCODE -ne 0) { throw 'windeployqt GUI failed' }
+          & "$env:QT_ROOT_DIR/bin/windeployqt.exe" --release --compiler-runtime "$out/archive-cli.exe"
+          if ($LASTEXITCODE -ne 0) { throw 'windeployqt CLI failed' }
           if (Test-Path 'resources/archive') { Copy-Item resources/archive "$out/archive-resources" -Recurse }
-          if (Test-Path 'build/archive-cli.exe') { Copy-Item build/archive-cli.exe $out }
-          @{ repository=$env:GITHUB_REPOSITORY; commit=$env:GITHUB_SHA; run_id=$env:GITHUB_RUN_ID; qualification='candidate-not-local-qualified' } | ConvertTo-Json | Set-Content "$out/build-identity.json" -Encoding utf8
-          Get-FileHash "$out/media-downloader.exe" -Algorithm SHA256 | Format-List | Out-File "$out/SHA256.txt"
+
+          $ytUrl = 'https://github.com/yt-dlp/yt-dlp/releases/download/2026.08.19/yt-dlp.exe'
+          $ytSha = '66674953fe251b89f4d08c5f0e35e0728679bd67ab3d7d05c0562af101dd3e7a'
+          $denoUrl = 'https://github.com/denoland/deno/releases/download/v2.9.6/deno-x86_64-pc-windows-msvc.zip'
+          $denoSha = '15e5300b0ba3c3695a7621d90160a746ec9e710228cee639afa9d580f6e3cd11'
+          $ffmpegUrl = 'https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-12-13-12/ffmpeg-n9.0.1-29-gad500d59cb-win64-gpl-shared-9.0.zip'
+          $ffmpegSha = '737a61c09e41d77a95bf461892a59ef7a71e3813f6def4d0b17c9a761bf04af5'
+
+          $downloads = Join-Path $env:RUNNER_TEMP 'archive-runtime-downloads'
+          New-Item -ItemType Directory -Force $downloads | Out-Null
+          $ytFile = Join-Path $downloads 'yt-dlp.exe'
+          $denoZip = Join-Path $downloads 'deno.zip'
+          $ffmpegZip = Join-Path $downloads 'ffmpeg.zip'
+          Invoke-WebRequest -Uri $ytUrl -OutFile $ytFile
+          Invoke-WebRequest -Uri $denoUrl -OutFile $denoZip
+          Invoke-WebRequest -Uri $ffmpegUrl -OutFile $ffmpegZip
+
+          function Assert-Sha256([string]$path,[string]$expected) {
+            $actual = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($actual -ne $expected) { throw "SHA256 mismatch for $path expected=$expected actual=$actual" }
+          }
+          Assert-Sha256 $ytFile $ytSha
+          Assert-Sha256 $denoZip $denoSha
+          Assert-Sha256 $ffmpegZip $ffmpegSha
+
+          Copy-Item $ytFile "$out/bin/yt-dlp.exe"
+          $denoExtract = Join-Path $downloads 'deno'
+          Expand-Archive -Path $denoZip -DestinationPath $denoExtract -Force
+          $denoExe = Get-ChildItem $denoExtract -Filter deno.exe -Recurse | Select-Object -First 1
+          if (!$denoExe) { throw 'deno.exe missing from pinned Deno package' }
+          Copy-Item $denoExe.FullName "$out/bin/deno.exe"
+
+          $ffmpegExtract = Join-Path $downloads 'ffmpeg'
+          Expand-Archive -Path $ffmpegZip -DestinationPath $ffmpegExtract -Force
+          $ffmpegExe = Get-ChildItem $ffmpegExtract -Filter ffmpeg.exe -Recurse | Select-Object -First 1
+          if (!$ffmpegExe) { throw 'ffmpeg.exe missing from pinned FFmpeg package' }
+          Copy-Item (Join-Path $ffmpegExe.Directory.FullName '*') "$out/3rdParty/ffmpeg/bin" -Recurse -Force
+          if (!(Test-Path "$out/3rdParty/ffmpeg/bin/ffprobe.exe")) { throw 'ffprobe.exe missing from pinned FFmpeg package' }
+
+          @(
+            'yt-dlp=2026.08.19 sha256=' + $ytSha,
+            'deno=2.9.6 sha256=' + $denoSha,
+            'ffmpeg=n9.0.1-29-gad500d59cb sha256=' + $ffmpegSha
+          ) | Set-Content "$out/RUNTIME_VERSIONS.txt" -Encoding utf8
+          @{ repository=$env:GITHUB_REPOSITORY; commit=$env:GITHUB_SHA; run_id=$env:GITHUB_RUN_ID; qualification='assembled-not-yet-qualified' } | ConvertTo-Json | Set-Content "$out/build-identity.json" -Encoding utf8
+      - name: Packaged Archive preflight
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $root = Join-Path $env:RUNNER_TEMP 'archive-preflight-root'
+          & "$out/archive-cli.exe" preflight $root
+          if ($LASTEXITCODE -ne 0) { throw "Archive preflight failed with exit $LASTEXITCODE" }
+      - name: Portable GUI launch smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $process = Start-Process -FilePath "$out/media-downloader.exe" -WorkingDirectory $out -PassThru
+          Start-Sleep -Seconds 5
+          $process.Refresh()
+          if ($process.HasExited) { throw "Portable GUI exited during smoke test with code $($process.ExitCode)" }
+          Stop-Process -Id $process.Id -Force
+      - name: Real playlist discovery smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $root = Join-Path $env:RUNNER_TEMP 'archive-playlist-live-root'
+          & "$out/archive-cli.exe" scan $root 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc' 'yt-dlp official example playlist'
+          if ($LASTEXITCODE -ne 0) { throw "Live playlist scan failed with exit $LASTEXITCODE" }
+      - name: Real video and audio Archive smoke
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $root = Join-Path $env:RUNNER_TEMP 'archive-media-live-root'
+          & "$out/archive-cli.exe" sync-item $root 'https://www.youtube.com/watch?v=BaW_jenozKc'
+          if ($LASTEXITCODE -ne 0) { throw "Live Archive media sync failed with exit $LASTEXITCODE" }
+          $video = Get-ChildItem (Join-Path $root 'Video') -File -Recurse | Select-Object -First 1
+          $audio = Get-ChildItem (Join-Path $root 'Audio') -File -Recurse | Select-Object -First 1
+          if (!$video -or !$audio) { throw 'Live Archive smoke did not produce both video and audio representations' }
+      - name: Seal qualification identity and manifest
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          @{ repository=$env:GITHUB_REPOSITORY; commit=$env:GITHUB_SHA; run_id=$env:GITHUB_RUN_ID; qualification='windows-ci-qualified-for-local-harness' } | ConvertTo-Json | Set-Content "$out/build-identity.json" -Encoding utf8
+          Get-ChildItem $out -File -Recurse | Get-FileHash -Algorithm SHA256 | ForEach-Object {
+            $relative = [IO.Path]::GetRelativePath($out,$_.Path).Replace('\\','/')
+            "$($_.Hash.ToLowerInvariant())  $relative"
+          } | Sort-Object | Set-Content "$out/SHA256SUMS.txt" -Encoding ascii
+          Get-ChildItem $out -Recurse | Select-Object FullName,Length | Format-Table -AutoSize | Out-String -Width 4096 | Set-Content "$out/PORTABLE_MANIFEST.txt" -Encoding utf8
       - uses: actions/upload-artifact@v4
         with:
           name: Media-Downloader-PS-Windows-Qt6-${{ github.sha }}
