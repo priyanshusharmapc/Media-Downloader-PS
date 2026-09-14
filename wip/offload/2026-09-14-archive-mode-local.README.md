@@ -2,7 +2,8 @@
 
 Date: 2026-09-14
 Baseline commit: `bad82c16508cdf7ec5daffb9bc92c90271a008f7`
-Target branch: `archive-mode-v1`
+Target implementation branch: `archive-mode-v1`
+Preservation branch: `archive-mode-v1-offload`
 Status: WIP source snapshot, not release-qualified
 
 This directory exists only to preserve an unpublished local implementation before the development conversation branches. It is not canonical project documentation. Canonical semantic/project documentation remains in Google Drive.
@@ -70,10 +71,10 @@ Do not treat this snapshot as release-ready. Remaining work includes Windows CI 
 
 ## Resume procedure
 
-1. Check out `archive-mode-v1` at the commit containing this offload artifact.
+1. Check out `archive-mode-v1-offload` at the offload commit recorded in the Google Drive Development Record.
 2. Extract `wip/offload/2026-09-14-archive-mode-local.patch.gz`.
 3. Verify the gzip SHA-256 above.
 4. Apply it from repository root against baseline `bad82c16508cdf7ec5daffb9bc92c90271a008f7`, for example with `patch -p1` after inspecting paths.
 5. Build with Qt6 and run `ctest --output-on-failure`.
-6. Once confirmed, commit the actual source files and delete this temporary offload artifact in the same or a subsequent cleanup commit.
+6. Once confirmed, commit the reconstructed actual source files to `archive-mode-v1` or its explicitly designated successor implementation branch, then remove this temporary offload artifact after successful reconstruction.
 7. Continue from the Google Drive Development Record and Current State documents, not from assumptions in this README.
