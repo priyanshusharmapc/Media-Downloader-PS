@@ -6,14 +6,9 @@ This guide is for operators, testers, and developers running Media Downloader PS
 
 For target Windows acceptance, use a portable artifact produced by the Archive Qt6 qualification workflow, not an arbitrary local build and not an older portable ZIP relabeled as current.
 
-The hardened code baseline immediately preceding this documentation refresh was:
+After extraction, inspect `build-identity.json`. The `commit` field is the expected commit for that exact package, and `qualification` must be `windows-ci-qualified-for-local-harness` before target-host acceptance.
 
-- commit: `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`
-- workflow run: `34881209447`
-- qualification: Linux PASS, Windows PASS
-- portable artifact digest: `sha256:186798f595707f3a8d2ecd257ca207e55c6c374f529e532172010e91b10478a1`
-
-Documentation-only commits can trigger newer portable builds with newer commit identities while preserving the same Archive implementation. After extraction, always inspect `build-identity.json`. The `commit` field in that file is the expected commit for that exact package.
+Confirm that the Archive Qt6 qualification run for that exact commit succeeded on Linux and Windows. Inspect the package's own `RUNTIME_VERSIONS.txt` and `SHA256SUMS.txt` for runtime identity and package sealing.
 
 Do not mix files from two candidate ZIPs. The local harness rejects extra unsealed files and hash mismatches.
 
@@ -304,7 +299,7 @@ Before a large run:
 - back up state before major migrations;
 - use complete playlist scans as authoritative reconciliation points.
 
-The current qualification includes high-volume state and integration coverage, but it is not a formal performance benchmark for every archive size and storage medium.
+Automated qualification includes state-integrity and integration coverage, but it is not a formal performance benchmark for every archive size and storage medium.
 
 ## 19. Stop conditions
 

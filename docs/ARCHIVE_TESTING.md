@@ -2,24 +2,24 @@
 
 This document defines the evidence chain required before Media Downloader PS Archive Mode moves from source development into live Kilo harness testing.
 
-## 1. Qualification identities
+Living documentation intentionally does not embed historical commit IDs, workflow run IDs, artifact IDs, digests, or pinned runtime version numbers. Those values are package-specific and must be read from the candidate package and its exact CI run.
 
-The hardening work began from the previously qualified baseline:
+## 1. Qualification identity
 
-- branch: `archive-mode-v1`
-- baseline commit: `3b0d705818b00dfd69d5c21b9cadec17f5f1abeb`
-- baseline source tree: `fe9052dd75fa9f16451132893c0a938bee11f939`
-- baseline GitHub Actions run: `34861991248`
+For every candidate, establish identity from the exact package and source revision being tested.
 
-The hardened code baseline documented here is:
+The required identity chain is:
 
-- commit: `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`
-- source tree: `b8b0c299518a8b81d5731e5da8638e07ed361e40`
-- GitHub Actions run: `34881209447`
-- Linux job: PASS
-- Windows job: PASS
+```text
+source commit
+→ Archive Qt6 qualification run for that commit
+→ sealed Windows portable artifact from that run
+→ build-identity.json inside that artifact
+→ SHA256SUMS.txt and RUNTIME_VERSIONS.txt inside that artifact
+→ target-host local-harness evidence receipt
+```
 
-Documentation-only commits can be newer than the hardened code baseline and can produce newer sealed packages with their own commit identities. For any portable package, `build-identity.json` is the authority for that exact package commit.
+Do not inherit qualification from an older package merely because the code appears similar. Do not copy an older run ID, digest, or runtime version from documentation.
 
 ## 2. Qualification philosophy
 
@@ -34,30 +34,15 @@ The test strategy therefore has several independent layers:
 5. ASan and UBSan execution on Linux;
 6. native Windows build and full integration execution;
 7. self-contained portable package construction and sealing;
-8. packaged runtime smoke using pinned yt-dlp, FFmpeg, FFprobe, and Deno;
+8. packaged runtime smoke using the packaged yt-dlp, FFmpeg, FFprobe, and Deno;
 9. positive and deliberately tampered Windows local-harness tests;
-10. final target-host local harness using real YouTube inputs.
+10. final target-host local harness using real authorized YouTube inputs.
 
 Each layer catches a different class of defect. None should be treated as a substitute for the layers after it.
 
-## 3. Baseline regression experiment
+## 3. Local regression suite
 
-Before accepting the hardening changes, the newly introduced regressions were exercised against the unmodified baseline.
-
-The original core test passed, while the 16 newly introduced hardening regression cases failed against the baseline as expected. This established that the tests were detecting real pre-existing gaps rather than merely mirroring the repaired implementation.
-
-The preserved baseline evidence lives under:
-
-```text
-qualification/pre-harness/baseline-tests.log
-qualification/pre-harness/baseline-tests.xml
-```
-
-## 4. Normal local suite
-
-The hardened development tree was configured and built with Qt6 testing enabled.
-
-Representative commands:
+A representative Qt6 test build is:
 
 ```sh
 cmake -S . -B build -G Ninja \
@@ -68,17 +53,15 @@ cmake --build build --parallel 2
 ctest --test-dir build --output-on-failure
 ```
 
-Result for the hardened pre-harness tree:
+The repository's current CTest configuration is the authority for the exact number and names of tests. Do not encode a fixed test count into release documentation.
 
-```text
-18/18 CTest entries PASS
-```
+The suite includes focused Archive core/hardening tests and an application-level Python integration entry. Python 3.11 or newer is required by the current CMake contract.
 
-The application-level integration CTest contains 22 Python unittest methods. On Linux, 21 execute and pass and the Windows-only PowerShell harness method is intentionally skipped.
+## 4. Sanitizer suite
 
-## 5. Sanitizer suite
+Linux qualification configures an instrumented Archive build with AddressSanitizer and UndefinedBehaviorSanitizer.
 
-Linux qualification also configures an instrumented Archive build with AddressSanitizer and UndefinedBehaviorSanitizer:
+Representative configuration:
 
 ```sh
 cmake -S . -B build-sanitized -G Ninja \
@@ -89,18 +72,9 @@ cmake -S . -B build-sanitized -G Ninja \
   -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
 ```
 
-The sanitizer run uses leak detection and halt-on-error behavior.
+The qualification workflow defines the exact sanitizer environment and failure policy. A candidate is not sanitizer-qualified if the instrumented test job reports an ASan or UBSan failure.
 
-Result:
-
-```text
-18/18 CTest entries PASS
-no reported ASan or UBSan finding
-```
-
-The same Windows-only PowerShell harness method is skipped on Linux.
-
-## 6. Application-level integration coverage
+## 5. Application-level integration coverage
 
 The integration suite uses the built `archive-cli` and a deterministic test boundary for yt-dlp while using real FFmpeg and FFprobe for media behavior.
 
@@ -135,70 +109,77 @@ Coverage includes, among other cases:
 - Windows local-harness positive execution;
 - deliberate portable-package tampering rejection.
 
-This test surface is intentionally broader than a happy-path download test because Archive Mode's primary failure modes are integrity failures.
+The test source is authoritative if this list ever differs from implementation.
 
-## 7. Linux CI qualification
+## 6. Linux CI qualification
 
-The `linux` job in `.github/workflows/archive-qt6.yml` runs in a Debian trixie container on an Ubuntu 24.04 runner.
+The `linux` job in `.github/workflows/archive-qt6.yml` is responsible for reproducible Linux qualification.
 
-It installs a matching Qt6 development toolchain plus Python and FFmpeg, captures source identity, configures and builds the Qt6 project, runs the normal suite with JUnit output, configures a sanitizer build, builds the instrumented Archive targets, runs the sanitizer suite, and uploads the resulting test evidence.
+It must, at minimum:
 
-For hardened run `34881209447`, every Linux qualification step completed successfully.
+- prepare the required Qt6, Python, compiler, and media-tool environment;
+- capture source identity;
+- configure and build the Archive candidate;
+- run the normal regression/integration suite with inspectable evidence;
+- configure and build the sanitizer targets;
+- run the sanitizer suite;
+- upload the resulting evidence.
 
-## 8. Windows CI qualification
+The exact runner image, toolchain versions, and test counts are defined by the workflow at the candidate commit. Check that workflow rather than relying on copied values in docs.
 
-The `windows` job uses Windows Server 2022, Qt 6.8.1 with matching MinGW 13.1, and Python 3.12.
+## 7. Windows CI qualification
 
-The job performs:
+The `windows` job in `.github/workflows/archive-qt6.yml` is responsible for native Windows qualification and assembly of the target portable candidate.
 
-1. source checkout;
-2. Qt and compiler setup;
-3. Release configuration and build;
-4. assembly of a self-contained portable candidate;
-5. installation of pinned, hash-verified yt-dlp, Deno, and FFmpeg/FFprobe runtimes;
-6. full normal regression and real-media integration execution;
-7. PowerShell syntax validation of the packaged local harness;
-8. packaged Archive preflight;
-9. portable GUI launch smoke;
-10. packaged yt-dlp + FFmpeg + FFprobe end-to-end runtime smoke against a local generated media fixture;
-11. advisory hosted YouTube discovery evidence;
-12. final build-identity sealing and SHA-256 manifest generation;
-13. upload of the portable package and Windows test evidence.
+It must, at minimum:
 
-For hardened run `34881209447`, every Windows qualification step completed successfully.
+1. check out the exact source commit;
+2. prepare the configured Qt/MinGW/Python environment;
+3. configure and build the Release candidate;
+4. assemble a self-contained portable package;
+5. install the workflow-defined, hash-verified runtime tools;
+6. run the normal regression and real-media integration suite;
+7. validate the packaged PowerShell harness syntax;
+8. run packaged Archive preflight;
+9. run a portable GUI launch smoke;
+10. run packaged yt-dlp + FFmpeg + FFprobe media smoke;
+11. collect advisory hosted YouTube evidence without treating hosted-network availability as the sole hard acceptance gate;
+12. seal final build identity and package hashes;
+13. upload the portable package and Windows test evidence.
 
-The Windows integration entry executed all 22 integration methods successfully, including the local-harness positive case and deliberate package-tamper rejection.
+A Windows package is not ready for target-host acceptance unless the job for its exact commit completed successfully and its final `build-identity.json` marks it `windows-ci-qualified-for-local-harness`.
 
-## 9. Packaged runtime smoke
+## 8. Packaged runtime smoke
 
 The portable runtime smoke intentionally avoids relying on hosted YouTube availability as a hard CI gate.
 
-The workflow generates a short audiovisual MP4 using the packaged FFmpeg, serves it from a local HTTP server, downloads it using the packaged yt-dlp configured with packaged FFmpeg, probes the resulting video using packaged FFprobe, extracts AAC audio using packaged FFmpeg, and probes the audio output again.
-
-This establishes that the shipped runtime pieces can work together in the assembled Windows package even if GitHub-hosted access to a real YouTube endpoint is unreliable.
+The workflow generates a local media fixture, exercises the packaged downloader/media tools together, probes the resulting outputs, and verifies that the packaged runtime pieces interoperate in the assembled Windows candidate.
 
 Real YouTube acceptance remains a target-host test.
 
-## 10. Runtime pinning
+## 9. Runtime identity
 
-The qualified Windows package from hardened run `34881209447` used pinned runtime downloads whose archives were SHA-256 verified during assembly:
+Runtime versions are candidate-specific.
 
-- yt-dlp `2026.08.19`;
-- Deno `2.9.6`;
-- FFmpeg build `n9.0.1-29-gad500d59cb`.
+Inspect:
 
-The portable package contains `RUNTIME_VERSIONS.txt` so an operator can inspect the exact runtime identities distributed with that candidate.
+```text
+RUNTIME_VERSIONS.txt
+```
 
-Do not silently replace one of these executables inside a sealed candidate and continue calling it the qualified package. The local harness is expected to reject changed sealed bytes.
+inside the extracted portable package for the exact yt-dlp, Deno, FFmpeg, FFprobe, and related runtime identities shipped with that candidate.
 
-## 11. Portable package sealing
+Do not silently replace one of these executables inside a sealed candidate and continue calling it the qualified package. The package hashes and local harness are intended to reject changed sealed bytes.
 
-After the Windows tests and runtime smokes pass, the workflow writes:
+## 10. Portable package sealing
+
+After the Windows tests and runtime smokes pass, the workflow writes package evidence including:
 
 ```text
 build-identity.json
 PORTABLE_MANIFEST.txt
 SHA256SUMS.txt
+RUNTIME_VERSIONS.txt
 ```
 
 `build-identity.json` binds the portable candidate to repository, commit, workflow run, and qualification state.
@@ -209,44 +190,32 @@ A package ready for target-host acceptance uses:
 qualification = windows-ci-qualified-for-local-harness
 ```
 
-`SHA256SUMS.txt` seals every packaged file other than itself. The local harness verifies every declared file and rejects undeclared extra files in the extraction directory.
+`SHA256SUMS.txt` seals packaged files according to the workflow contract. The local harness verifies declared files and rejects undeclared extra files in the extraction directory.
 
 This prevents a stale binary, mixed extraction, edited harness, replaced runtime, or other package mutation from being mistaken for the exact candidate qualified by CI.
 
-## 12. Hardened baseline run artifacts
+## 11. CI evidence and artifacts
 
-GitHub Actions run `34881209447` produced these durable workflow artifacts:
+For the candidate being accepted, preserve the artifacts from that exact workflow run. Typical evidence includes:
 
-| Artifact | Artifact ID | GitHub digest |
-| --- | ---: | --- |
-| source-33cf3150fb7ccc6aa26f0f2d9454db7701baad05 | `10363186973` | `sha256:665e42c0bfdc7041606e2f89f49a66f4b7722442470a11ca1bbf197def6b86de` |
-| linux-test-evidence-33cf3150fb7ccc6aa26f0f2d9454db7701baad05 | `10362533391` | `sha256:1f8ef3c8f403d0cfd597cdfd2f4f87babddaa40648e1a4c41f2826e4e697b617` |
-| windows-test-evidence-33cf3150fb7ccc6aa26f0f2d9454db7701baad05 | `10363177553` | `sha256:663125e94ce441305f7c6a3a21ca3a7609efae6afd566f71c82132a12643005f` |
-| Media-Downloader-PS-Windows-Qt6-33cf3150fb7ccc6aa26f0f2d9454db7701baad05 | `10362997743` | `sha256:186798f595707f3a8d2ecd257ca207e55c6c374f529e532172010e91b10478a1` |
+- source identity artifact;
+- Linux test evidence;
+- Windows test evidence;
+- sealed Windows portable package.
 
-These GitHub artifact digests identify the uploaded ZIP artifacts. The package's own `SHA256SUMS.txt` separately seals the files inside the portable candidate.
+Artifact IDs and GitHub digests belong to the workflow run, not to living documentation. Record them in the acceptance record or release evidence for the specific candidate if long-term traceability is required.
 
-A newer docs-only branch build can produce a different artifact digest and package commit even when Archive source code is unchanged. Do not substitute the baseline digest for another package. Inspect that run's artifact metadata and package identity instead.
+The package's own `SHA256SUMS.txt` separately seals the files inside the portable candidate.
 
-## 13. Preserved repository evidence
+## 12. Repository evidence
 
-The repository includes pre-harness evidence under:
+Repository-native tests, workflow definitions, harness code, schemas, and source are the durable specification for current behavior.
 
-```text
-qualification/pre-harness/
-```
+Qualification logs and exported evidence may be retained under dedicated qualification/evidence paths, but historical results must not override the behavior or identity of a newer candidate.
 
-That directory includes baseline logs, normal test logs and XML, sanitizer configuration/build logs, sanitizer test logs and XML, CTest LastTest logs, and an evidence manifest.
+Git history is the historical record for superseded audits, old baseline identities, and past qualification narratives. Living docs should describe the current contract, not repeat obsolete build metadata.
 
-The dated forensic review is:
-
-```text
-docs/archive-pre-harness-audit-2026-09-14.md
-```
-
-That audit was frozen before the final strengthened Windows run completed. Its historical statement that updated Windows CI had not yet run should not be interpreted as current status. Run `34881209447` later completed successfully on both Linux and Windows.
-
-## 14. Target-host local acceptance
+## 13. Target-host local acceptance
 
 Hosted CI is necessary but not sufficient. The target machine has real environmental variables such as network routing, antivirus, filesystem behavior, Windows path handling, local permissions, yt-dlp extractor behavior, and real YouTube responses.
 
@@ -270,12 +239,12 @@ Confirm that `qualification` is `windows-ci-qualified-for-local-harness`, then r
 
 Do not add `-AllowExistingArchive` to the first acceptance run unless the purpose of the test specifically requires pre-existing state.
 
-## 15. What a local-harness PASS proves
+## 14. What a local-harness PASS proves
 
 For the chosen package, host, playlist, and item, PASS establishes that:
 
 - the package claimed the expected qualified commit;
-- the package's declared files matched their SHA-256 hashes;
+- the package's declared files matched their hashes;
 - required runtime files were sealed;
 - no extra unsealed files were present;
 - runtime preflight succeeded;
@@ -287,7 +256,7 @@ For the chosen package, host, playlist, and item, PASS establishes that:
 - canonical media SHA-256 values did not change on the immediate rerun;
 - a dated evidence receipt was written into the Archive Root.
 
-## 16. What a local-harness PASS does not prove
+## 15. What a local-harness PASS does not prove
 
 It does not prove:
 
@@ -302,13 +271,13 @@ It does not prove:
 
 That broader uncertainty belongs to live Kilo exploratory testing and later production experience.
 
-## 17. Gate before live Kilo testing
+## 16. Gate before live Kilo testing
 
-Do not start broad live-harness exploration until all of the following are true:
+Do not start broad live-harness exploration until all of the following are true for the exact candidate being used:
 
-- the exact source/package commit is known;
-- Linux CI is green for the package commit;
-- Windows CI is green for the package commit;
+- the package commit is known from `build-identity.json`;
+- Linux CI is green for that commit;
+- Windows CI is green for that commit;
 - normal regression/integration tests pass;
 - Linux sanitizer tests pass;
 - the Windows portable package is sealed;
@@ -320,9 +289,9 @@ Do not start broad live-harness exploration until all of the following are true:
 
 After those conditions are met, the candidate is ready for broader Kilo-driven environmental and user-flow testing.
 
-## 18. Live Kilo test priorities
+## 17. Live Kilo test priorities
 
-The next phase should emphasize behavior that deterministic CI cannot fully reproduce:
+The live phase should emphasize behavior that deterministic CI cannot fully reproduce:
 
 - long real downloads;
 - GUI cancellation and restart;
@@ -338,7 +307,7 @@ The next phase should emphasize behavior that deterministic CI cannot fully repr
 
 Every live failure should become a reproducible automated regression whenever feasible.
 
-## 19. Regression policy
+## 18. Regression policy
 
 A defect found during Kilo or production testing should normally result in:
 
@@ -354,7 +323,7 @@ A defect found during Kilo or production testing should normally result in:
 
 Do not remove a safety test merely because its failure becomes inconvenient. Change the implementation or explicitly revise the documented contract with evidence.
 
-## 20. Adding tests
+## 19. Adding tests
 
 New Archive tests should target externally observable invariants rather than private implementation details where possible.
 
@@ -373,26 +342,24 @@ Prefer tests that prove properties such as:
 
 Tests should leave enough diagnostic context to understand a failure without requiring a live debugger.
 
-## 21. Evidence retention
+## 20. Evidence retention
 
 For each candidate that reaches local acceptance, preserve at minimum:
 
 - exact Git/package commit;
-- CI run ID;
-- CI conclusion for Linux and Windows;
+- CI run identity and conclusions for Linux and Windows;
 - portable artifact identity and digest for that run;
 - Windows and Linux test evidence artifacts;
 - `build-identity.json`;
 - `SHA256SUMS.txt`;
+- `RUNTIME_VERSIONS.txt`;
 - local-harness evidence receipt;
 - any incident logs produced during acceptance.
 
 This makes qualification reproducible and prevents an older or modified binary from being confused with the accepted candidate.
 
-## 22. Current conclusion
+## 21. Acceptance conclusion
 
-Hardened code baseline `33cf3150fb7ccc6aa26f0f2d9454db7701baad05` completed the strengthened pre-harness CI qualification successfully on both Linux and Windows. The deterministic hardening, integration, sanitizer, portable packaging, GUI smoke, and packaged runtime gates for that baseline are green.
+There is no permanently hardcoded "current qualified candidate" in this document.
 
-Any newer sealed package must be judged by its own `build-identity.json`, CI run, artifact digest, and local-harness evidence rather than inheriting the older package's identity.
-
-The remaining pre-live requirement for the package selected for deployment is the real target Windows local harness using that exact sealed candidate and real authorized YouTube inputs. Once that passes and its receipt is preserved, broad Kilo live-harness testing can begin.
+The candidate selected for deployment is ready for broad live Kilo testing only when its own identity, CI run, package sealing, packaged smokes, and target-host local-harness evidence all satisfy the gates above.

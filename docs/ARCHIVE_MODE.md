@@ -238,9 +238,11 @@ The Windows qualification package includes:
 - `archive-local-harness.ps1`
 - `archive-cli.exe`
 - the GUI executable
-- pinned yt-dlp, Deno, FFmpeg, and FFprobe runtime components
+- packaged yt-dlp, Deno, FFmpeg, and FFprobe runtime components
 
 The local harness verifies the expected commit and all sealed package bytes before executing Archive operations. Extra unsealed files in the extracted package directory cause refusal. This is intentional so a mixed or modified package cannot be mistaken for the CI-qualified candidate.
+
+Runtime versions are package-specific. Inspect `RUNTIME_VERSIONS.txt` rather than relying on a version copied into documentation.
 
 ## 17. Acceptance boundary
 
@@ -260,8 +262,15 @@ A passing local harness proves, for the chosen playlist and item on that host, t
 
 It does not prove every playlist, authentication mode, geographic environment, network failure, or future extractor version.
 
-## 18. Current qualification baseline
+## 18. Qualification source of truth
 
-The code-qualified candidate documented here is commit `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`, source tree `b8b0c299518a8b81d5731e5da8638e07ed361e40`, qualified by GitHub Actions run `34881209447` with successful Linux and Windows jobs.
+Archive Mode deliberately avoids a hardcoded "current qualified commit" in living documentation.
 
-See [ARCHIVE_TESTING.md](ARCHIVE_TESTING.md) for the exact test layers and artifacts.
+For any candidate, qualification is established by the combination of:
+
+- the exact source/package commit in `build-identity.json`;
+- a successful Archive Qt6 qualification run for that exact commit;
+- the package's own `SHA256SUMS.txt` and `RUNTIME_VERSIONS.txt`;
+- the target-host local-harness evidence receipt for the selected package.
+
+See [ARCHIVE_TESTING.md](ARCHIVE_TESTING.md) for the required test layers and acceptance gates.

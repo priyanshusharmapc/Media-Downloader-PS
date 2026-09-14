@@ -18,21 +18,18 @@ Then read [ARCHIVE_TESTING.md](ARCHIVE_TESTING.md) for the qualification strateg
 
 Read [ARCHIVE_RECOVERY.md](ARCHIVE_RECOVERY.md) and the embedded [Archive Agent contract](../resources/archive/ARCHIVE_AGENT.md). The contract is the authoritative submission boundary for external recovery work.
 
-## Current status
+## Current-status source of truth
 
-At the time these documents were authored, the latest code-qualified Archive Mode candidate was:
+Maintained documentation intentionally does not hardcode a "current" commit, workflow run, artifact ID, digest, or runtime version. Those values become stale as soon as another qualified package is produced.
 
-- Branch: `archive-mode-v1`
-- Commit: `33cf3150fb7ccc6aa26f0f2d9454db7701baad05`
-- Source tree: `b8b0c299518a8b81d5731e5da8638e07ed361e40`
-- GitHub Actions run: `34881209447`
-- Linux job: PASS
-- Windows job: PASS
-- Target-host real YouTube/Kilo acceptance: still required
+For any candidate package, determine current status from:
 
-The Windows portable artifact from that qualification run was named `Media-Downloader-PS-Windows-Qt6-33cf3150fb7ccc6aa26f0f2d9454db7701baad05`. Its GitHub artifact digest was `sha256:186798f595707f3a8d2ecd257ca207e55c6c374f529e532172010e91b10478a1`.
+1. the exact package's `build-identity.json`;
+2. the Archive Qt6 qualification result for that exact commit;
+3. the package's own `SHA256SUMS.txt` and `RUNTIME_VERSIONS.txt`;
+4. the target-host local-harness evidence receipt.
 
-Documentation commits can be newer than a previously built portable package. Treat the `build-identity.json` inside a package as the authority for that package's expected commit.
+If those sources disagree, stop and resolve the identity mismatch before using the package.
 
 ## Document set
 
@@ -43,24 +40,18 @@ Documentation commits can be newer than a previously built portable package. Tre
 | [ARCHIVE_RECOVERY.md](ARCHIVE_RECOVERY.md) | Recovery Package creation, validation, provenance, retry, acceptance, rejection |
 | [ARCHIVE_TESTING.md](ARCHIVE_TESTING.md) | Regression, integration, sanitizers, Windows qualification, package sealing, local acceptance |
 | [DOCUMENTATION_CHECKLIST.md](DOCUMENTATION_CHECKLIST.md) | Contract-change checklist to keep documentation synchronized with implementation |
-| [archive-pre-harness-audit-2026-09-14.md](archive-pre-harness-audit-2026-09-14.md) | Frozen forensic audit of the baseline and hardening work |
 | [../resources/archive/ARCHIVE_AGENT.md](../resources/archive/ARCHIVE_AGENT.md) | Runtime materialized contract for external agents and recovery automation |
 
 ## Authority hierarchy
 
 When documents disagree, use this order:
 
-1. The source code and schema in the exact commit being executed.
-2. `resources/archive/ARCHIVE_AGENT.md` and `resources/archive/recovery-package.schema.json` for recovery submissions.
-3. The maintained docs in this directory.
-4. The dated audit report, which is intentionally historical.
-5. Chat transcripts, temporary notes, or exported bundles.
+1. the source code and schema in the exact commit being executed;
+2. `resources/archive/ARCHIVE_AGENT.md` and `resources/archive/recovery-package.schema.json` for recovery submissions;
+3. the maintained docs in this directory;
+4. chat transcripts, temporary notes, exported bundles, or other secondary material.
 
-Do not infer current behavior from an older portable package, an older CI run, or the frozen audit without checking the package identity and current source.
-
-## Historical audit note
-
-`archive-pre-harness-audit-2026-09-14.md` was frozen before the final strengthened Windows qualification finished. Its statement that updated Windows CI had not yet run is historically accurate for the moment the audit was frozen, but it is no longer the current project status. The final run `34881209447` later passed both Linux and Windows. Current qualification information belongs in [ARCHIVE_TESTING.md](ARCHIVE_TESTING.md).
+Qualification history belongs in Git history, workflow artifacts, and preserved evidence, not in living operational documentation.
 
 ## Documentation maintenance rules
 
@@ -73,7 +64,9 @@ Documentation should be updated whenever any of the following changes:
 - transaction or locking behavior
 - portable package sealing and identity checks
 - local harness parameters or acceptance criteria
-- CI test layers or artifact names
+- CI test layers or artifact structure
 - known limitations or target-host acceptance requirements
 
 A code change that alters one of these contracts is incomplete until the corresponding documentation is updated. Use [DOCUMENTATION_CHECKLIST.md](DOCUMENTATION_CHECKLIST.md) as the release review checklist.
+
+Do not add hardcoded "latest" build identities to maintained docs. Point readers to package identity and CI evidence instead.
