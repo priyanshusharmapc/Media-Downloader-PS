@@ -5,6 +5,7 @@
 #include <QJsonDocument>
 #include <QTemporaryDir>
 #include <QTextStream>
+#include <QFileInfo>
 #include <functional>
 #include <stdexcept>
 #ifdef Q_OS_WIN
@@ -43,9 +44,10 @@ int main(int argc,char** argv){QCoreApplication app(argc,argv);if(argc!=2)return
 #ifdef Q_OS_WIN
    const auto target=QDir::toNativeSeparators(outside.filePath("secret.mp4"));
    const auto link=QDir::toNativeSeparators(QDir(p).filePath("linked.mp4"));
-   const auto created=CreateSymbolicLinkW(reinterpret_cast<LPCWSTR>(target.utf16()),reinterpret_cast<LPCWSTR>(link.utf16()),0x2);
+   const auto created=CreateSymbolicLinkW(reinterpret_cast<LPCWSTR>(link.utf16()),reinterpret_cast<LPCWSTR>(target.utf16()),0x2);
    const auto error=GetLastError();
    require(created!=0,QString("make symlink error=%1 target=%2 link=%3").arg(error).arg(target).arg(link));
+   require(QFileInfo(link).isSymLink(),"package-side symlink missing");
 #else
    require(QFile::link(outside.filePath("secret.mp4"),QDir(p).filePath("linked.mp4")),"make symlink");
 #endif
