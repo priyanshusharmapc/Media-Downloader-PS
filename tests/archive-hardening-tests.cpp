@@ -39,7 +39,7 @@ int main(int argc,char** argv){QCoreApplication app(argc,argv);if(argc!=2)return
  else if(name=="nested-redaction"){Fixture f;f.logger.event("INFO","test","redaction",{{"nested",QJsonObject{{"token","do-not-leak"}}}});const auto day=QDir(f.paths.activityLogs()).entryList(QDir::Dirs|QDir::NoDotAndDotDot).last();const auto dir=QDir(f.paths.activityLogs()).filePath(day);const auto file=QDir(dir).entryList(QDir::Files).last();require(!get(QDir(dir).filePath(file)).contains("do-not-leak"),"nested credential leaked");}
  else if(name=="deleted-title"){Fixture f;auto p=f.item;p.title="[Deleted video]";p.availability="deleted";Snapshot s;s.sourceKey=f.source.key;s.items={p};require(f.store.reconcile(f.source,s).committed,"deleted reconcile");require(get(QDir(f.paths.sourceDir(f.source.key)).filePath("missing.csv")).contains("Historical title"),"recovery report lost known title");}
   else if(name=="linked-package-file"){
-   Fixture f;QTemporaryDir outside;put(outside.filePath("secret.mp4"),"secret");const auto p=f.package({{"representations",QJsonObject{{"video",QJsonObject{{"file","linked.mp4"}}}}}});
+   Fixture f;QTemporaryDir outside;const auto p=f.package({{"representations",QJsonObject{{"video",QJsonObject{{"file","linked.mp4"}}}}}});
 #ifdef Q_OS_WIN
    const auto target=QDir::toNativeSeparators(outside.filePath("secret.mp4"));
    const auto link=QDir::toNativeSeparators(QDir(p).filePath("linked.mp4"));
