@@ -255,7 +255,18 @@ ProcessResult runProcess(const QString& program,const QStringList& args,const QS
     while(process.state()!=QProcess::NotRunning){
         process.waitForReadyRead(100);drain();
         timedOut=timer.elapsed()>timeoutMs;
-        if(overflow||timedOut){process.kill();process.waitForFinished(5000);break;}
+        if(overflow||timedOut){
+#ifdef Q_OS_WIN
+            const auto pid=process.processId();
+            if(pid>0){
+                QProcess killer;killer.start("taskkill",{"/PID",QString::number(pid),"/T","/F"});
+                killer.waitForFinished(5000);
+            }else process.kill();
+#else
+            process.kill();
+#endif
+            process.waitForFinished(5000);break;
+        }
     }
     drain();r.standardOutput=QString::fromUtf8(output);r.standardError=QString::fromUtf8(errors);
     if(overflow||timedOut){r.error=overflow?"Process output exceeded the safety limit":"Process timed out";return r;}
@@ -304,10 +315,13 @@ QStringList withoutDownloadArchive(QStringList args)
 Paths::Paths(QString root)
 {
     if(root.trimmed().isEmpty()) return;
-    const auto absolute=QDir::cleanPath(QFileInfo(root).absoluteFilePath());
-    const auto canonical=QFileInfo(absolute).canonicalFilePath();
-    m_root=canonical.isEmpty()?absolute:canonical;
+    // Preserve the operator-selected path. Canonicalizing here would erase a
+    // root or parent symlink before the safety layer can reject it.
+    m_root=QDir::cleanPath(QFileInfo(root).absoluteFilePath());
 }
+
+QString placeholderFingerprint(const QString& sourceKey,const QString& title,const QString& url);
+QString placeholderBaseKey(const QString& sourceKey,const QString& title,const QString& url=QString());
 QString Paths::root() const{return m_root;}
 QString Paths::video() const{return QDir(m_root).filePath("Video");}
 QString Paths::audio() const{return QDir(m_root).filePath("Audio");}
@@ -582,11 +596,14 @@ ReconcileSummary Store::reconcile(Source& source,const Snapshot& snapshot,Activi
     if(!error.isEmpty()){ summary.error=error; return summary; }
 
     QHash<QString,int> priorIndex;
+    QHash<QString,QVector<int>> priorPlaceholders;
     QHash<QString,int> priorOccurrences;
     for(int i=0;i<prior.size();++i){
         const int ordinal=++priorOccurrences[prior[i].itemKey];
         if(prior[i].entryKey.isEmpty())prior[i].entryKey=prior[i].itemKey+"#"+QString::number(ordinal);
         priorIndex[prior[i].entryKey]=i;
+        if(prior[i].providerId.isEmpty()&&prior[i].itemKey.startsWith("placeholder:"))
+            priorPlaceholders[placeholderFingerprint(source.key,prior[i].title,prior[i].url)].append(i);
     }
     QHash<QString,int> canonicalIndex;
     for(int i=0;i<canonical.size();++i) canonicalIndex[canonical[i].key]=i;
@@ -599,13 +616,37 @@ ReconcileSummary Store::reconcile(Source& source,const Snapshot& snapshot,Activi
     QSet<QString> observedKeys;
     QHash<QString,int> observedOccurrences;
     const auto scanTime=snapshot.scannedAt.isEmpty()?nowIso():snapshot.scannedAt;
+    QSet<int> matchedPrior;
 
     for(auto p:snapshot.items){
         if(!p.providerId.isEmpty()&&!detail::videoIdSafe(p.providerId)){summary.error="Invalid provider identity";return summary;}
-        const auto expectedKey=canonicalKey(p.providerId,source.key,p.position,p.title);
+        const bool unresolved=p.providerId.isEmpty();
+        const auto expectedKey=unresolved?placeholderBaseKey(source.key,p.title,p.url):canonicalKey(p.providerId,source.key,p.position,p.title);
         if(p.itemKey.isEmpty()) p.itemKey=expectedKey;
-        if(p.itemKey!=expectedKey){summary.error="Canonical identity mismatch";return summary;}
-        p.entryKey=p.itemKey+"#"+QString::number(++observedOccurrences[p.itemKey]);
+        if(unresolved){
+            if(!p.itemKey.startsWith("placeholder:"+source.key+":")){summary.error="Invalid unresolved placeholder identity";return summary;}
+            const auto fingerprint=placeholderFingerprint(source.key,p.title,p.url);
+            const auto candidates=priorPlaceholders.value(fingerprint);
+            int priorIndexForPlaceholder=-1;
+            for(const auto candidate:candidates)if(!matchedPrior.contains(candidate)){priorIndexForPlaceholder=candidate;break;}
+            if(priorIndexForPlaceholder>=0){
+                matchedPrior.insert(priorIndexForPlaceholder);
+                p.itemKey=prior[priorIndexForPlaceholder].itemKey;
+                p.entryKey=prior[priorIndexForPlaceholder].entryKey;
+            }else{
+                p.itemKey=expectedKey;
+                int ordinal=1;
+                while(canonicalIndex.contains(p.itemKey)){
+                    ++ordinal;
+                    const auto suffix=QString::fromLatin1(QCryptographicHash::hash((fingerprint+"|"+QString::number(ordinal)).toUtf8(),QCryptographicHash::Sha1).toHex().left(8));
+                    p.itemKey=expectedKey+":occurrence-"+suffix;
+                }
+                p.entryKey=p.itemKey+"#1";
+            }
+        }else{
+            if(p.itemKey!=expectedKey){summary.error="Canonical identity mismatch";return summary;}
+            p.entryKey=p.itemKey+"#"+QString::number(++observedOccurrences[p.itemKey]);
+        }
         observedKeys.insert(p.entryKey);
         const bool hadPrior=priorIndex.contains(p.entryKey);
         PlaylistItem previous;
@@ -838,11 +879,24 @@ QString availabilityFromEntry(const QJsonObject& e)
     return a.isEmpty()?"public":a;
 }
 
-QString canonicalKey(const QString& providerId,const QString& sourceKey,int position,const QString& title)
+QString placeholderFingerprint(const QString& sourceKey,const QString& title,const QString& url)
+{
+    const auto normalize=[](QString value){return value.trimmed().normalized(QString::NormalizationForm_KC).toCaseFolded();};
+    return sourceKey+"|"+normalize(title)+"|"+normalize(url);
+}
+
+QString placeholderBaseKey(const QString& sourceKey,const QString& title,const QString& url)
+{
+    const auto material=placeholderFingerprint(sourceKey,title,url).toUtf8();
+    return "placeholder:"+sourceKey+":"+QString::fromLatin1(QCryptographicHash::hash(material,QCryptographicHash::Sha1).toHex().left(16));
+}
+
+QString canonicalKey(const QString& providerId,const QString& sourceKey,int,const QString& title)
 {
     if(!providerId.trimmed().isEmpty()) return "youtube:"+providerId.trimmed();
-    const QByteArray material=(sourceKey+"|"+QString::number(position)+"|"+title).toUtf8();
-    return "placeholder:"+sourceKey+":"+QString::fromLatin1(QCryptographicHash::hash(material,QCryptographicHash::Sha1).toHex().left(16));
+    // Position is mutable playlist metadata, not identity. Unresolved
+    // duplicate occurrences are separated during reconciliation.
+    return placeholderBaseKey(sourceKey,title);
 }
 
 QString derivedStatus(const PlaylistItem& p,const CanonicalItem* c)
@@ -908,7 +962,7 @@ Snapshot PlaylistDiscovery::parse(const Source& source,const QByteArray& json,co
         if(p.url.isEmpty()) p.url=e.value("url").toString();
         if(!p.providerId.isEmpty()) p.url="https://www.youtube.com/watch?v="+p.providerId;
         p.availability=availabilityFromEntry(e);
-        p.itemKey=canonicalKey(p.providerId,source.key,p.position,p.title);
+        p.itemKey=p.providerId.isEmpty()?placeholderBaseKey(source.key,p.title,p.url):canonicalKey(p.providerId,source.key,p.position,p.title);
         s.items.append(p);
     }
     const bool transient=isTransientText(stderrText);
@@ -952,7 +1006,23 @@ ValidationResult MediaVerifier::probe(const QString& relativePath,bool video) co
     }
     if(video&&videos==0)result.errors<<"No video stream";
     if(!video&&(audios==0||videos!=0))result.errors<<"Audio representation needs AAC audio without a moving-video stream";
-    result.ok=result.errors.isEmpty();return result;
+    if(!result.errors.isEmpty())return result;
+
+    // Metadata can survive a truncated fast-start MP4. Decode every canonical
+    // media stream before allowing the representation to become complete.
+    const auto ffmpeg=tools.ffmpeg();
+    if(ffmpeg.isEmpty()){result.errors<<"FFmpeg is required for full media integrity validation";return result;}
+    QStringList integrityArgs={"-hide_banner","-nostdin","-v","error","-xerror","-i",absolute};
+    if(video) integrityArgs<<"-map"<<"0:v:0?"<<"-map"<<"0:a:0?";
+    else integrityArgs<<"-map"<<"0:a:0?";
+    integrityArgs<<"-f"<<"null"<<"-";
+    const auto integrity=runProcess(ffmpeg,integrityArgs,m_config.archiveRoot,10*60*1000);
+    if(!integrity.ok){
+        const auto detail=integrity.standardError.trimmed().left(1600);
+        result.errors<<("Full media integrity decode failed: "+(detail.isEmpty()?integrity.error:detail));
+        return result;
+    }
+    result.ok=true;return result;
 }
 
 MediaExecutor::MediaExecutor(RuntimeConfig c,Store& s,ActivityLogger& l):m_config(std::move(c)),m_store(s),m_logger(l),m_tools(m_config),m_verifier(m_config,l){}

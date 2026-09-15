@@ -91,6 +91,8 @@ audio_path=...
 
 `verify-item` re-reads canonical state, locates the requested canonical item, verifies its video and audio files, and reports the same canonical paths.
 
+Verification includes container/profile checks and a full FFmpeg stream-consumption integrity pass. It does not compare a durable content hash stored in canonical state. The qualification harness separately records SHA-256 values when proving idempotent reruns.
+
 Use it after manual filesystem incidents, antivirus quarantines, restores, or suspected corruption.
 
 ## 7. Run the target Windows local harness

@@ -49,7 +49,10 @@ jobs:
       - name: Build
         run: cmake --build build --parallel 2
       - name: Test
-        run: ctest --test-dir build --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
+        env:
+          ARCHIVE_TEST_TMP: ${{ github.workspace }}/archive-test-tmp
+          ARCHIVE_TEST_CONFIG_ROOT: ${{ github.workspace }}/archive-test-config
+        run: mkdir -p "$ARCHIVE_TEST_TMP" "$ARCHIVE_TEST_CONFIG_ROOT" && ctest --test-dir build --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
       - name: Configure address and undefined-behavior sanitizer tests
         run: cmake -S . -B build-sanitized -G Ninja -DBUILD_WITH_QT6=ON -DBUILD_TESTING=ON -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
       - name: Build instrumented Archive executables
@@ -59,7 +62,9 @@ jobs:
           ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
           QT_QPA_PLATFORM: offscreen
-        run: ctest --test-dir build-sanitized --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
+          ARCHIVE_TEST_TMP: ${{ github.workspace }}/archive-test-tmp-sanitized
+          ARCHIVE_TEST_CONFIG_ROOT: ${{ github.workspace }}/archive-test-config-sanitized
+        run: mkdir -p "$ARCHIVE_TEST_TMP" "$ARCHIVE_TEST_CONFIG_ROOT" && ctest --test-dir build-sanitized --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -182,6 +187,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $out = Join-Path $env:GITHUB_WORKSPACE 'portable/Media-Downloader-PS'
+          $testRoot = Join-Path $env:GITHUB_WORKSPACE 'archive-test-tmp'
+          $configRoot = Join-Path $env:GITHUB_WORKSPACE 'archive-test-config'
+          New-Item -ItemType Directory -Path $testRoot,$configRoot -Force | Out-Null
+          $env:ARCHIVE_TEST_TMP = $testRoot
+          $env:ARCHIVE_TEST_CONFIG_ROOT = $configRoot
+          $env:PATH = "$out/3rdParty/ffmpeg/bin;$env:PATH"
           $env:ARCHIVE_TEST_FFMPEG = "$out/3rdParty/ffmpeg/bin/ffmpeg.exe"
           $env:ARCHIVE_TEST_FFPROBE = "$out/3rdParty/ffmpeg/bin/ffprobe.exe"
           ctest --test-dir build --output-on-failure --output-junit Testing/Temporary/ctest-junit.xml

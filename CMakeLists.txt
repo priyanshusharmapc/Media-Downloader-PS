@@ -103,8 +103,9 @@ set(SRC
     src/engines.cpp
     src/tableWidget.cpp
     src/library.cpp
-    src/archive/archivecore.cpp
-    src/archive/archivetab.cpp
+     src/archive/archivecore.cpp
+     src/archive/archivesettings.cpp
+     src/archive/archivetab.cpp
     src/engines/tests.cpp
     src/engines/yt-dlp.cpp
     src/engines/safaribooks.cpp
@@ -481,10 +482,27 @@ if(BUILD_TESTING)
     else()
         target_link_libraries(archive-hardening-tests Qt5::Core)
     endif()
-    foreach(case discovery-shape discovery-null discovery-count discovery-error portable-paths source-traversal state-shape source-state-corruption snapshot-identity import-identity import-id-only import-schema partial-recovery-status nested-redaction deleted-title linked-package-file)
+    foreach(case discovery-shape discovery-null discovery-count discovery-error portable-paths reserved-device-variants reparse-policy root-symlink parent-symlink linked-state linked-media placeholder-position placeholder-reorder source-traversal state-shape source-state-corruption snapshot-identity import-identity import-id-only import-schema partial-recovery-status nested-redaction deleted-title linked-package-file)
         add_test(NAME archive-${case} COMMAND archive-hardening-tests ${case})
         set_tests_properties(archive-${case} PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77)
     endforeach()
+
+    add_executable(archive-media-integrity-tests tests/archive-media-integrity-tests.cpp src/archive/archivecore.cpp src/archive/archive.qrc)
+    if(BUILD_WITH_QT6)
+        target_link_libraries(archive-media-integrity-tests Qt6::Core)
+    else()
+        target_link_libraries(archive-media-integrity-tests Qt5::Core)
+    endif()
+    add_test(NAME archive-media-integrity COMMAND archive-media-integrity-tests)
+    set_tests_properties(archive-media-integrity PROPERTIES TIMEOUT 900)
+
+    add_executable(archive-gui-settings-tests tests/archive-gui-settings-tests.cpp src/archive/archivesettings.cpp)
+    if(BUILD_WITH_QT6)
+        target_link_libraries(archive-gui-settings-tests Qt6::Core)
+    else()
+        target_link_libraries(archive-gui-settings-tests Qt5::Core)
+    endif()
+    add_test(NAME archive-gui-settings COMMAND archive-gui-settings-tests)
 endif()
 
 if(BUILD_TESTING)

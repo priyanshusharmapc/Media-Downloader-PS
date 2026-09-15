@@ -1,4 +1,5 @@
 #include "archivetab.h"
+#include "archivesettings.h"
 
 #include "../settings.h"
 
@@ -21,7 +22,6 @@
 #include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
-#include <QSettings>
 #include <QSplitter>
 #include <QTableWidget>
 #include <QTabWidget>
@@ -34,12 +34,6 @@
 
 namespace
 {
-QString appSettingsFile()
-{
-    const auto d=QDir(QCoreApplication::applicationDirPath()).filePath("local/settings");
-    QDir().mkpath(d);
-    return QDir(d).filePath("archive-mode.ini");
-}
 QString readText(const QString& path)
 {
     QFile f(path); if(!f.open(QIODevice::ReadOnly|QIODevice::Text)) return {}; return QString::fromUtf8(f.readAll());
@@ -134,23 +128,12 @@ void ArchiveTab::wireUi()
 
 QString ArchiveTab::configuredRoot() const
 {
-    QSettings s(appSettingsFile(),QSettings::IniFormat);
-    const auto relative=s.value("ArchiveRootRelativeToApp").toString();
-    if(!relative.isEmpty()){
-        const auto candidate=QDir::cleanPath(QDir(QCoreApplication::applicationDirPath()).filePath(relative));
-        if(QFileInfo(candidate).isDir()) return candidate;
-    }
-    const auto parent=QFileInfo(QCoreApplication::applicationDirPath()).absoluteDir().absolutePath();
-    if(QFileInfo(QDir(parent).filePath("State")).exists()||QFileInfo(QDir(parent).filePath("Video")).exists()||QFileInfo(QDir(parent).filePath("Audio")).exists()) return parent;
-    const auto download=m_ctx.Settings().downloadFolder();
-    if(!download.isEmpty()&&QFileInfo(download).isDir()) return download;
-    return parent;
+    return archive::ui::configuredRoot(QCoreApplication::applicationDirPath(),m_ctx.Settings().downloadFolder());
 }
 
 void ArchiveTab::persistRoot(const QString& root)
 {
-    const auto app=QCoreApplication::applicationDirPath(); const auto rel=QDir::fromNativeSeparators(QDir(app).relativeFilePath(root));
-    QSettings s(appSettingsFile(),QSettings::IniFormat); s.setValue("ArchiveRootRelativeToApp",rel); s.sync();
+    archive::ui::persistRoot(root);
 }
 
 archive::RuntimeConfig ArchiveTab::runtimeConfig() const{return {m_root,QCoreApplication::applicationDirPath()};}

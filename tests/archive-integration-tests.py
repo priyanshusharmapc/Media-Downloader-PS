@@ -34,16 +34,29 @@ def sha(path: Path) -> str:
 def run(command, *, env=None, timeout=45):
     return subprocess.run([str(x) for x in command], capture_output=True, text=True, env=env, timeout=timeout)
 
+def cleanup_path(path: Path, attempts: int = 120) -> None:
+    last = None
+    for attempt in range(attempts):
+        try:
+            shutil.rmtree(path)
+            return
+        except (PermissionError, OSError) as exc:
+            last = exc
+            if attempt + 1 == attempts:
+                raise
+            time.sleep(0.25)
+    if last:
+        raise last
+
 class ArchiveIntegration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.fixture_temp = tempfile.TemporaryDirectory(prefix='archive-media-fixtures-')
-        cls.fixture = Path(cls.fixture_temp.name)
+        cls.fixture = Path(tempfile.mkdtemp(prefix='archive-media-fixtures-'))
         cls.video = cls.fixture / 'good.mp4'
         cls.audio = cls.fixture / 'good.m4a'
         cls.incompatible = cls.fixture / 'normalize-me.mkv'
         commands = [
-            [FFMPEG, '-nostdin', '-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=size=160x90:rate=8', '-f', 'lavfi', '-i', 'sine=sample_rate=48000', '-t', '1', '-c:v', 'libx264', '-threads', '1', '-pix_fmt', 'yuv420p', '-c:a', 'aac', cls.video],
+            [FFMPEG, '-nostdin', '-v', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc2=size=160x90:rate=8', '-f', 'lavfi', '-i', 'sine=sample_rate=48000', '-t', '1', '-c:v', 'libx264', '-threads', '1', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-movflags', '+faststart', cls.video],
             [FFMPEG, '-nostdin', '-v', 'error', '-y', '-i', cls.video, '-vn', '-c:a', 'copy', cls.audio],
             [FFMPEG, '-nostdin', '-v', 'error', '-y', '-i', cls.video, '-c:v', 'ffv1', '-threads', '1', '-c:a', 'pcm_s16le', cls.incompatible],
         ]
@@ -54,12 +67,11 @@ class ArchiveIntegration(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.fixture_temp.cleanup()
+        cleanup_path(cls.fixture)
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='archive integration ')
-        self.addCleanup(self.temp.cleanup)
-        self.base = Path(self.temp.name)
+        self.base = Path(tempfile.mkdtemp(prefix='archive integration '))
+        self.addCleanup(lambda: cleanup_path(self.base))
         self.root = self.base / 'archive root with spaces'
         self.package = self.base / 'portable package'
         self.package.mkdir()
@@ -133,6 +145,24 @@ class ArchiveIntegration(unittest.TestCase):
         for path in before:
             result = run([FFMPEG, '-nostdin', '-v', 'error', '-i', self.root / path, '-f', 'null', '-'])
             self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_truncated_faststart_media_is_rejected_and_repaired(self):
+        self.scan()
+        self.command('sync-item', VIDEO_URL)
+        video = self.root / self.first()['video']['path']
+        original = video.read_bytes()
+        self.assertGreater(len(original), 4096)
+        video.write_bytes(original[:max(4096, len(original) * 60 // 100)])
+        damaged_hash = sha(video)
+        probe = run([FFPROBE, '-v', 'error', '-show_streams', '-show_format', '-of', 'json', video])
+        self.assertEqual(probe.returncode, 0, probe.stderr)
+        self.command('verify-item', VIDEO_URL, expect=1)
+        self.command('sync-item', VIDEO_URL)
+        self.command('verify-item', VIDEO_URL)
+        repaired = self.root / self.first()['video']['path']
+        self.assertNotEqual(sha(repaired), damaged_hash)
+        decoded = run([FFMPEG, '-nostdin', '-v', 'error', '-xerror', '-i', repaired, '-map', '0:v:0?', '-map', '0:a:0?', '-f', 'null', '-'])
+        self.assertEqual(decoded.returncode, 0, decoded.stderr)
 
     def test_partial_scan_preserves_membership(self):
         self.scan()

@@ -12,6 +12,13 @@
 #include <QSaveFile>
 #include <QSet>
 #include <QMap>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <winioctl.h>
+#ifndef FSCTL_GET_REPARSE_POINT
+#define FSCTL_GET_REPARSE_POINT 0x000900A8
+#endif
+#endif
 
 namespace archive { namespace detail {
 inline bool reject(QString* error,const QString& message){if(error)*error=message;return false;}
@@ -21,11 +28,33 @@ inline bool relativeSafe(const QString& path){
     if(path.isEmpty()||QDir::isAbsolutePath(path)||path.contains('\\'))return false;
     const auto parts=path.split('/');
     const QRegularExpression bad("[\\x00-\\x1F\\x7F:*?\"<>|]");
-    const QRegularExpression reserved("^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(?:\\.|$)",QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpression reserved("^(CON|PRN|AUX|NUL|COM(?:[1-9]|[¹²³])|LPT(?:[1-9]|[¹²³]))(?:\\.|$)",QRegularExpression::CaseInsensitiveOption);
     for(const auto& part:parts)
         if(part.isEmpty()||part=="."||part==".."||part.size()>240||part.endsWith('.')||part.endsWith(' ')||bad.match(part).hasMatch()||reserved.match(part).hasMatch())return false;
     return true;
 }
+inline bool isPermittedCloudFilesTag(quint32 tag){
+    // IO_REPARSE_TAG_CLOUD_0..15 are 0x9000n01A. These are not name-surrogate
+    // links and may be traversed as ordinary synchronized Archive ancestors.
+    return (tag&0xFFFF0FFFu)==0x9000001Au;
+}
+#ifdef Q_OS_WIN
+inline bool windowsReparseSafe(const QString& path){
+    const auto native=QDir::toNativeSeparators(path);
+    const auto attributes=GetFileAttributesW(reinterpret_cast<LPCWSTR>(native.utf16()));
+    if(attributes==INVALID_FILE_ATTRIBUTES||!(attributes&FILE_ATTRIBUTE_REPARSE_POINT))return true;
+    const auto handle=CreateFileW(reinterpret_cast<LPCWSTR>(native.utf16()),FILE_READ_ATTRIBUTES,
+                                  FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,nullptr,OPEN_EXISTING,
+                                  FILE_FLAG_OPEN_REPARSE_POINT|FILE_FLAG_BACKUP_SEMANTICS,nullptr);
+    if(handle==INVALID_HANDLE_VALUE)return false;
+    BYTE buffer[MAXIMUM_REPARSE_DATA_BUFFER_SIZE]{};DWORD returned=0;
+    const bool queried=DeviceIoControl(handle,FSCTL_GET_REPARSE_POINT,nullptr,0,buffer,sizeof(buffer),&returned,nullptr)!=FALSE;
+    CloseHandle(handle);
+    if(!queried||returned<sizeof(quint32))return false;
+    const auto tag=*reinterpret_cast<const quint32*>(buffer);
+    return isPermittedCloudFilesTag(tag);
+}
+#endif
 inline bool noLinks(const QString& path){
     QString current=QDir::cleanPath(QFileInfo(path).absoluteFilePath());
     for(;;){
@@ -33,6 +62,9 @@ inline bool noLinks(const QString& path){
         if(info.isSymLink())return false;
 #if QT_VERSION >= QT_VERSION_CHECK(6,2,0)
         if(info.isJunction())return false;
+#endif
+#ifdef Q_OS_WIN
+        if(!windowsReparseSafe(current))return false;
 #endif
         const auto parent=info.absolutePath();if(parent==current)break;current=parent;
     }
