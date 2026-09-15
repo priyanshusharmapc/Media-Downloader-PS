@@ -2,7 +2,7 @@ name: Archive Qt6 qualification
 
 on:
   push:
-    branches: [main, archive-mode-v1, archive-mode-v1-qualification-wip, 'ci/**']
+    branches: [main, archive-mode-v1, archive-mode-v1-qualification-wip, audit-remediation-20260916, 'ci/**']
   pull_request:
   workflow_dispatch:
 
