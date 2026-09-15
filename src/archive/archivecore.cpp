@@ -1013,8 +1013,8 @@ ValidationResult MediaVerifier::probe(const QString& relativePath,bool video) co
     const auto ffmpeg=tools.ffmpeg();
     if(ffmpeg.isEmpty()){result.errors<<"FFmpeg is required for full media integrity validation";return result;}
     QStringList integrityArgs={"-hide_banner","-nostdin","-v","error","-xerror","-i",absolute};
-    if(video) integrityArgs<<"-map"<<"0:v:0?"<<"-map"<<"0:a:0?";
-    else integrityArgs<<"-map"<<"0:a:0?";
+    if(video) integrityArgs<<"-map"<<"0:v?"<<"-map"<<"0:a?";
+    else integrityArgs<<"-map"<<"0:a?";
     integrityArgs<<"-f"<<"null"<<"-";
     const auto integrity=runProcess(ffmpeg,integrityArgs,m_config.archiveRoot,10*60*1000);
     if(!integrity.ok){
