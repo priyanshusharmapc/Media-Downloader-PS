@@ -14,6 +14,22 @@ $cli = Join-Path $here 'archive-cli.exe'
 $identityPath = Join-Path $here 'build-identity.json'
 $sumPath = Join-Path $here 'SHA256SUMS.txt'
 
+function Get-ReparseTag([string]$path) {
+    $output = @(& fsutil.exe reparsepoint query $path 2>$null)
+    if ($LASTEXITCODE -ne 0) { return $null }
+    foreach ($line in $output) {
+        if ([string]$line -match 'Reparse Tag Value\s*:\s*0x([0-9a-fA-F]+)') {
+            return [Convert]::ToUInt32($Matches[1], 16)
+        }
+    }
+    return $null
+}
+function Is-CloudPlaceholderTag([uint32]$tag) {
+    # Microsoft Cloud Files uses the documented 0x9000n01A tag family.
+    $cloudMask = [Convert]::ToUInt32('FFFF0FFF', 16)
+    $cloudBase = [Convert]::ToUInt32('9000001A', 16)
+    return (($tag -band $cloudMask) -eq $cloudBase)
+}
 function Safe-Child([string]$parent, [string]$relative) {
     if ([IO.Path]::IsPathRooted($relative) -or $relative -match '[:\\]' -or $relative -match '(^|/)\.{1,2}(/|$)' -or $relative -match '[\x00-\x1f]') { throw "Unsafe relative path: $relative" }
     $prefix = $parent.TrimEnd('\','/') + [IO.Path]::DirectorySeparatorChar
@@ -22,7 +38,11 @@ function Safe-Child([string]$parent, [string]$relative) {
     $cursor = $path
     while ($cursor) {
         if (Test-Path -LiteralPath $cursor) {
-            if (((Get-Item -LiteralPath $cursor -Force).Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Linked path refused: $cursor" }
+            $attributes = (Get-Item -LiteralPath $cursor -Force).Attributes
+            if (($attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                $tag = Get-ReparseTag $cursor
+                if ($null -eq $tag -or -not (Is-CloudPlaceholderTag $tag)) { throw "Linked path refused: $cursor" }
+            }
         }
         $next = Split-Path -Parent $cursor
         if (!$next -or $next -eq $cursor) { break }; $cursor = $next
