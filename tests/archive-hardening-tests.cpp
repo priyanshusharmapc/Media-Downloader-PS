@@ -43,7 +43,7 @@ int main(int argc,char** argv){QCoreApplication app(argc,argv);if(argc!=2)return
 #ifdef Q_OS_WIN
    const auto target=QDir::toNativeSeparators(outside.filePath("secret.mp4"));
    const auto link=QDir::toNativeSeparators(QDir(p).filePath("linked.mp4"));
-   require(CreateSymbolicLinkW(reinterpret_cast<LPCWSTR>(target.utf16()),reinterpret_cast<LPCWSTR>(link.utf16()),0)!=0,"make symlink");
+   require(CreateSymbolicLinkW(reinterpret_cast<LPCWSTR>(target.utf16()),reinterpret_cast<LPCWSTR>(link.utf16()),0x2)!=0,"make symlink");
 #else
    require(QFile::link(outside.filePath("secret.mp4"),QDir(p).filePath("linked.mp4")),"make symlink");
 #endif
