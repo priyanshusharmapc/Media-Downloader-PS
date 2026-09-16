@@ -218,15 +218,6 @@ jobs:
           $process.Refresh()
           if ($process.HasExited) { throw "Portable GUI exited during smoke test with code $($process.ExitCode)" }
           Stop-Process -Id $process.Id -Force
-      - name: GUI settings preserve package seal
-        shell: pwsh
-        run: |
-          $testRoot = Join-Path $env:GITHUB_WORKSPACE 'gui-settings-test'
-          $archiveRoot = Join-Path $testRoot 'ArchiveRoot'
-          $configRoot = Join-Path $testRoot 'Config'
-          New-Item -ItemType Directory -Path $archiveRoot,$configRoot -Force | Out-Null
-          $env:ARCHIVE_TEST_CONFIG_ROOT = $configRoot
-          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:GITHUB_WORKSPACE/tests/archive-gui-package-immutability.ps1" -PackageRoot "$env:GITHUB_WORKSPACE/portable/Media-Downloader-PS" -ArchiveRoot $archiveRoot -OutputJson "$testRoot/results.json"
       - name: Packaged yt-dlp FFmpeg FFprobe end-to-end runtime smoke
         shell: pwsh
         run: |
@@ -276,6 +267,15 @@ jobs:
             $relative = [IO.Path]::GetRelativePath($out,$_.Path).Replace('\','/')
             "$($_.Hash.ToLowerInvariant())  $relative"
           } | Sort-Object | Set-Content "$out/SHA256SUMS.txt" -Encoding ascii
+      - name: GUI settings preserve package seal
+        shell: pwsh
+        run: |
+          $testRoot = Join-Path $env:GITHUB_WORKSPACE 'gui-settings-test'
+          $archiveRoot = Join-Path $testRoot 'ArchiveRoot'
+          $configRoot = Join-Path $testRoot 'Config'
+          New-Item -ItemType Directory -Path $archiveRoot,$configRoot -Force | Out-Null
+          $env:ARCHIVE_TEST_CONFIG_ROOT = $configRoot
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$env:GITHUB_WORKSPACE/tests/archive-gui-package-immutability.ps1" -PackageRoot "$env:GITHUB_WORKSPACE/portable/Media-Downloader-PS" -ArchiveRoot $archiveRoot -OutputJson "$testRoot/results.json"
       - uses: actions/upload-artifact@v4
         with:
           name: Media-Downloader-PS-Windows-Qt6-${{ github.sha }}
