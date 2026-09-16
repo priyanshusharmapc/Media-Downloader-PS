@@ -284,5 +284,7 @@ jobs:
         if: always()
         with:
           name: windows-test-evidence-${{ github.sha }}
-          path: build/Testing/Temporary
+          path: |
+            build/Testing/Temporary
+            gui-settings-test
           if-no-files-found: ignore
