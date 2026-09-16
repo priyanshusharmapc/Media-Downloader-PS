@@ -87,7 +87,6 @@ int start( int argc,char * argv[],
 		auto json = utility::event::toJson( cargs ) ;
 
 		myApp::args args{ mqApp,ss,paths,cargs } ;
-
 		utils::app::appInfo< myApp,myApp::args > m( args,spath,mqApp,json ) ;
 
 		if( cargs.contains( "-s" ) || !ss.singleInstance() ){

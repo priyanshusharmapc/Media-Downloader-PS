@@ -50,7 +50,7 @@ public:
 	void resetTitle() ;
 	void Show() ;
 	void processEvent( const QByteArray& e ) ;
-	void quitApp() ;
+ void quitApp() ;
 	void saveData() ;
 	void notifyOnDownloadComplete( const QString& = {} ) ;
 	void notifyOnAllDownloadComplete( const QString& ) ;

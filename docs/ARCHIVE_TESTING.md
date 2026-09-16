@@ -29,7 +29,7 @@ The test strategy therefore has several independent layers:
 
 1. focused C++ core and hardening regressions;
 2. application-level integration tests using the real Archive CLI boundary;
-3. real FFmpeg/FFprobe media generation, normalization, probing, and decoding;
+3. real FFmpeg/FFprobe media generation, normalization, probing, full stream-integrity decoding, and truncation rejection;
 4. multi-process concurrency and killed-writer scenarios;
 5. ASan and UBSan execution on Linux;
 6. native Windows build and full integration execution;
@@ -109,6 +109,8 @@ Coverage includes, among other cases:
 - Windows local-harness positive execution;
 - deliberate portable-package tampering rejection.
 
+The media-integrity regression deliberately creates fast-start MP4/M4A fixtures whose metadata remains readable after truncation. Metadata-only probing must pass the fixture while the canonical verifier must reject it through full FFmpeg stream consumption. A subsequent sync must promote a repaired, decodable representation.
+
 The test source is authoritative if this list ever differs from implementation.
 
 ## 6. Linux CI qualification
@@ -143,9 +145,10 @@ It must, at minimum:
 8. run packaged Archive preflight;
 9. run a portable GUI launch smoke;
 10. run packaged yt-dlp + FFmpeg + FFprobe media smoke;
-11. collect advisory hosted YouTube evidence without treating hosted-network availability as the sole hard acceptance gate;
-12. seal final build identity and package hashes;
-13. upload the portable package and Windows test evidence.
+11. run the GUI settings/package-immutability regression using the shared ArchiveTab settings path;
+12. collect advisory hosted YouTube evidence without treating hosted-network availability as the sole hard acceptance gate;
+13. seal final build identity and package hashes;
+14. upload the portable package and Windows test evidence.
 
 A Windows package is not ready for target-host acceptance unless the job for its exact commit completed successfully and its final `build-identity.json` marks it `windows-ci-qualified-for-local-harness`.
 

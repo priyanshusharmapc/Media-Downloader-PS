@@ -13,7 +13,7 @@ Archive Mode is designed to:
 - support safe external recovery without allowing external tools to mutate canonical state directly;
 - survive interrupted multi-file state publication without silently producing a mixed archive;
 - reject ambiguous, malformed, linked, escaping, or conflicting filesystem inputs;
-- verify canonical media using FFprobe rather than trusting filenames or state labels alone;
+- verify canonical media with profile metadata plus full FFmpeg stream consumption rather than trusting filenames or state labels alone;
 - produce deterministic evidence for CI and target-host acceptance.
 
 ## 2. Non-goals
@@ -31,6 +31,8 @@ youtube:<11-character-video-id>
 The original YouTube identity is retained even if media is later recovered from a different source. A mirror or reupload is evidence supporting the historical object, not a replacement identity.
 
 Playlist occurrences are distinct from canonical media identity. Duplicate appearances of the same canonical video can have separate occurrence identities and positions while still pointing to one canonical item.
+
+For unresolved provider entries, the placeholder base identity is derived from stable source/title/URL material and never from mutable playlist position. Duplicate unresolved occurrences receive separate occurrence keys during reconciliation, while prior matching preserves their existing placeholder identities across reorder and insertion.
 
 ## 4. Archive Root layout
 
@@ -133,7 +135,7 @@ Canonical recovered or normalized video is accepted only when it satisfies the A
 
 Canonical audio is an M4A/MP4-family audio representation with AAC audio and positive duration. Audio-only output must not contain moving video.
 
-Media verification uses FFprobe and evaluates the relevant streams. A state value of `complete` is insufficient if the referenced file is missing, empty, corrupt, incompatible, or no longer probes successfully.
+Media verification uses FFprobe for profile metadata and then consumes every relevant FFmpeg stream with error escalation. A state value of `complete` is insufficient if the referenced file is missing, empty, truncated, corrupt, incompatible, or no longer decodes successfully. `verify-item` does not compare a durable state hash; the qualification harness separately records SHA-256 values for idempotency evidence.
 
 ## 9. Safe normalization
 
@@ -165,7 +167,9 @@ If a command reports that another writer owns the archive, stop the second write
 
 ## 12. Filesystem safety
 
-Archive Mode rejects unsafe relative paths and linked path boundaries. Recovery package paths are package-relative and must not contain traversal, absolute paths, drive letters, alternate data streams, reserved Windows names, symbolic links, junctions, or path escapes.
+Archive Mode rejects unsafe relative paths and linked path boundaries. The original requested Archive Root is validated component-by-component before any canonical path resolution. On Windows, the core inspects reparse tags and permits only the documented Cloud Files family where policy allows; symbolic links, junctions, name-surrogate and unknown unsafe tags fail closed. Recovery package paths are package-relative and must not contain traversal, absolute paths, drive letters, alternate data streams, reserved Windows names, symbolic links, junctions, or path escapes.
+
+GUI Archive Root settings are stored under the per-user Qt application-configuration location. The portable application directory remains sealed and immutable during normal configuration.
 
 Canonical Archive paths are stored as Archive Root relative paths where appropriate. Machine-specific absolute paths are runtime details and should not become portable archive identity.
 
