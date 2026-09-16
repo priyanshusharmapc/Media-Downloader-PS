@@ -4,12 +4,12 @@ This list distinguishes implementation, focused regression and final qualificati
 
 | ID | Implementation | Focused regression | Final qualification |
 |---|---|---|---|
-| MDPS-AUDIT-001 | IMPLEMENTED | TESTED: metadata-readable truncation rejected; sync repairs damaged canonical media | QUALIFIED by CI 35083974352 and final target/live evidence |
-| MDPS-AUDIT-002 | IMPLEMENTED | TESTED: original root/parent paths are validated before canonical use | QUALIFIED by Windows CI 35083974352 and target evidence |
-| MDPS-AUDIT-003 | IMPLEMENTED | TESTED: shared C++ Cloud Files/reparse policy and Windows link cases | QUALIFIED by 29/29 Windows CI 35083974352 |
-| MDPS-AUDIT-004 | IMPLEMENTED | TESTED: shared GUI settings helper and sealed-package smoke path | QUALIFIED by Windows CI 35083974352; native file-dialog automation remains environment-limited |
-| MDPS-AUDIT-005 | IMPLEMENTED | TESTED: obsolete upstream publisher workflows removed | QUALIFIED by remediation workflow inventory/CI 35083974352 |
-| MDPS-AUDIT-006 | IMPLEMENTED | TESTED: final package identity is regenerated from one final commit/run | QUALIFIED by final CI run 35083974352 and exact package evidence |
+| MDPS-AUDIT-001 | IMPLEMENTED | TESTED: metadata-readable truncation rejected; sync repairs damaged canonical media | QUALIFIED by CI 35087925054 and final target/live evidence |
+| MDPS-AUDIT-002 | IMPLEMENTED | TESTED: original root/parent paths are validated before canonical use | QUALIFIED by Windows CI 35087925054 and target evidence |
+| MDPS-AUDIT-003 | IMPLEMENTED | TESTED: shared C++ Cloud Files/reparse policy and Windows link cases | QUALIFIED by 29/29 Windows CI 35087925054 |
+| MDPS-AUDIT-004 | IMPLEMENTED | TESTED: shared GUI settings helper and sealed-package smoke path | QUALIFIED by Windows CI 35087925054; native file-dialog automation remains environment-limited |
+| MDPS-AUDIT-005 | IMPLEMENTED | TESTED: obsolete upstream publisher workflows removed | QUALIFIED by remediation workflow inventory/CI 35087925054 |
+| MDPS-AUDIT-006 | IMPLEMENTED | TESTED: final package identity is regenerated from one final commit/run | QUALIFIED by final CI run 35087925054 and exact package evidence |
 | MDPS-AUDIT-007 | IMPLEMENTED | TESTED: 60-minute identity-bound endurance, 1,102 iterations, stable full media set, no temp/journal residue | QUALIFIED |
 | MDPS-AUDIT-008 | IMPLEMENTED | TESTED: position-independent placeholder base and reorder/duplicate occurrence preservation | QUALIFIED by focused/CI history tests |
 | MDPS-AUDIT-009 | IMPLEMENTED | TESTED: superscript and ordinary reserved device names | QUALIFIED by focused/CI tests |
