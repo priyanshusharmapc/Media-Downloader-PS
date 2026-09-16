@@ -10,6 +10,7 @@ param(
     [string]$BasePackageRoot,
     [string]$ExpectedCommit,
     [string]$ExpectedCiRun,
+    [switch]$SkipPreflight,
     [string]$OutputJson
 )
 
@@ -63,8 +64,11 @@ function Get-MediaHashes{
 }
 
 $start=Get-Date
-$preflight=Invoke-Archive @('preflight',$root)
-if($preflight.ExitCode -ne 0){throw $preflight.Output}
+$preflight=$null
+if(!$SkipPreflight){
+    $preflight=Invoke-Archive @('preflight',$root)
+    if($preflight.ExitCode -ne 0){throw $preflight.Output}
+}
 $deadline=(Get-Date).AddMinutes($DurationMinutes)
 $iterations=0;$failures=@();$baseline=$null;$maxMediaCount=0;$mediaChanges=@()
 while((Get-Date)-lt $deadline){
@@ -100,6 +104,8 @@ $report=[ordered]@{
     requested_minutes=$DurationMinutes
     iterations=$iterations
     failures=$failures
+    preflightSkipped=[bool]$SkipPreflight
+    preflightReason=if($SkipPreflight){'deliberate fake-provider overlay; exact sealed base package was manifest-validated and preflighted separately'}else{$null}
     packageSeal=$packageSeal
     basePackageRoot=$basePackage
     packageRoot=[IO.Path]::GetFullPath($PackageRoot)
